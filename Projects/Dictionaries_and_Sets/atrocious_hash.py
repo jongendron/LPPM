@@ -41,17 +41,33 @@ def simple_hash(s: str) -> int:
     return basic_hash % 10
 
 #%% Test the function
-for key, value in data:
-    h = simple_hash(key)
-    print(key, h)
-
+# =============================================================================
+# for key, value in data:
+#     h = simple_hash(key)
+#     print(key, h)
+# 
+# =============================================================================
 #%% Built-in Hash function
 # You can get different hashes each time you run the program
-for key, value in data:
-    #h = simple_hash(key)
-    h = hash(key)
-    print(key, h)
-    
+# =============================================================================
+# for key, value in data:
+#     #h = simple_hash(key)
+#     h = hash(key)
+#     print(key, h)
+# 
+# =============================================================================
+#%% Get function
+def get(k: str) -> str:
+    """
+    Return the value for a key, or None if the key doesn't exist
+
+    """
+    hash_code = simple_hash(k)
+    if values[hash_code]:
+        return values[hash_code]
+    else:
+        return None
+
 #%% Creating hash library
 keys = [""] * 10 # initialize list of 10 items of empty strings
 values = keys.copy()
@@ -68,6 +84,9 @@ print()
 print(keys)
 print()
 print(values)
+print()
+value = get("banana") # banana is same as lemon in this crappy hash function
+print(value)
 
 # Typically empty strings are not stored in dictionaries (bash libraries)
 # But this is just a siplified version
