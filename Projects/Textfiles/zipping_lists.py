@@ -15,19 +15,20 @@ albums = [("Welcome to my Nightmare", "Alice Cooper", 1975),
           ]
 
 keys = ['album', 'artist', 'year']
+more = ['v1', 'v2', 'v3']
 
 filename = 'albums.csv'
 with open(filename, 'w', encoding='utf-8', newline='') as csv_file:
-    writer = csv.DictWriter(csv_file, fieldnames=keys)
+    writer = csv.DictWriter(csv_file, fieldnames=keys, quoting=csv.QUOTE_NONNUMERIC)
 # zip function -> trasnforms iterable of X -> iterable containing tuples
     for row in albums:
         #print(row)
         zip_object = zip(keys, row)
+        #zip_object = zip(keys, row, more)
         #print(zip_object)
-        #for thing in zip(keys, row):
-            #print("\t", thing)
+        #for thing in zip_object:
+        #    print("\t", thing)
         albums_dict = dict(zip_object)
         print(albums_dict)
         writer.writerow(albums_dict)
 
-#%% but what happens if zip objects contain tuples of 3 elements?
