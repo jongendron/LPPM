@@ -9,3 +9,8 @@ with open(filename, 'rb') as downloaded_file:
 
 file_hash = hashlib.sha256(contents).hexdigest()
 print(file_hash)
+
+if file_hash != published_hash:
+    print(f'\nThe file {filename} has been modified\n')
+else:
+    print(f'\nfile {filename} hash is correct\n')
