@@ -34,7 +34,7 @@ def load_images(card_images):
 
 
 # Deal cards function
-def deal_card(frame):
+def _deal_card(frame):
     # pop the next card off top of the deck
     next_card = deck.pop(0) # save card variable and remove from list
 
@@ -74,7 +74,7 @@ def deal_dealer():
     #dealer_hand.append(deal_card(dealer_card_frame))
     dealer_score = score_hand(dealer_hand)
     while 0 < dealer_score < 17:
-        dealer_hand.append(deal_card(dealer_card_frame))
+        dealer_hand.append(_deal_card(dealer_card_frame))
         dealer_score = score_hand(dealer_hand)
         dealer_score_label.set(dealer_score)
     
@@ -93,7 +93,7 @@ def deal_dealer():
 def deal_player():
     # lists saved to global variables do not need to be defined in functions
     # these can be appended without being defined as global (and are meant to)
-    player_hand.append(deal_card(player_card_frame))
+    player_hand.append(_deal_card(player_card_frame))
     player_score = score_hand(player_hand)
 
     player_score_label.set(player_score)
@@ -120,6 +120,14 @@ def deal_player():
 
 def shuffle():
     random.shuffle(deck)
+
+
+# Intial deal
+def initial_deal():
+    deal_player()
+    dealer_hand.append(_deal_card(dealer_card_frame))
+    dealer_score_label.set(score_hand(dealer_hand))
+    deal_player()
 
 
 def new_game():
@@ -151,14 +159,18 @@ def new_game():
     #global deck
     #deck = list(cards) if you want new deck
     #random.shuffle(deck)
-    
     # if you want to just shuffle
     shuffle()
+    
+    # Initialize w/ first deal
+    initial_deal()
 
-    deal_player()
-    dealer_hand.append(deal_card(dealer_card_frame))
-    dealer_score_label.set(score_hand(dealer_hand))
-    deal_player()
+
+# Module to play the blackjack game
+def play():
+    #new_game()
+    initial_deal()
+    win.mainloop()
 
 
 win = tk.Tk()
@@ -217,20 +229,16 @@ cards = []
 load_images(cards)
 #print(cards)
 
-
-# Create a new deck of cards and shuffle them
+# Make new deck of cards and shuffle them
 # if you want multiple decks ...
-# call load_images again and again
 # deck = list(cards) + list(cards) + list(cards)
 deck = list(cards)
 #random.shuffle(deck)
 shuffle()
 
-# Create the list to store the dealer's and player's hands
+# Initialize the list to store the dealer's and player's hands
 dealer_hand = []
 player_hand = []
 
-new_game()
-
-win.mainloop()
-
+if __name__ == '__main__':
+    play()
