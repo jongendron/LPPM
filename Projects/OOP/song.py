@@ -81,13 +81,19 @@ class Artist:
         """
         self.albums.append(album)
 
+
+def find_object(field, object_list):
+    """Check `object_list` to see if object with a `name` attribute equal to `field` exists, return it if so.
+    `Conflict occures if list contains multiple objects with same name attribute.`"""
+    for item in object_list:
+        if item.name == field:
+            return item
+    return None # if nothing found
+    # could alternatively use a dictionary for hashing (more efficient)
+
 def load_data(File: str="albums.txt"):
     """Simple program to load Arist/album data from text file.
-    Function requires data in file to be presorted, such
-    that all songs for an artist and for each album appear 
-    sequentially in each row. 
     """
-    
     new_artist = None
     new_album = None
     artist_list = []
@@ -102,35 +108,33 @@ def load_data(File: str="albums.txt"):
 
             if new_artist is None:
                 new_artist = Artist(artist_field) # initialize
+                artist_list.append(new_artist)
             elif new_artist.name != artist_field:
                 # We've just read details for a new artist
-                # Store current album in the current artists collection
-                # -> then create new artist object
-                new_artist.add_album(new_album)
-                artist_list.append(new_artist)
-                new_artist = Artist(artist_field) # redefine
-                new_album = None
-
-            if new_album is None:
+                # retrieve the artist object if there is one
+                # otherwise, create a new artist object and add to artist list.
+                new_artist = find_object(artist_field, artist_list)
+                if new_artist is None:
+                    new_artist = Artist(artist_field)
+                    artist_list.append(new_artist)
+                #new_album = None #TODO: Causes new album to be added every time artist changes
+                
+            if new_album is None: #TODO: If all songs of album are not sequental, two instances of same Album are created and store different tracks (redundant)
                 new_album = Album(album_field, year_field, new_artist)
+                new_artist.add_album(new_album)
             elif new_album.name != album_field:
-                # We've just read a new album for the current artist
-                # Store the current album in artists collection and create new album object
-                new_artist.add_album(new_album)
-                new_album = Album(album_field, year_field, new_artist)
+                # We've just read a new album for the current artist.
+                # Retrieve album object if there is one.
+                # otherwise create a new ablumn object and store it in the artist's collection.
+                new_album = find_object(album_field, new_artist.albums)
+                if new_album is None:
+                    new_album = Album(album_field, year_field, new_artist)    
+                    new_artist.add_album(new_album)
 
             # create a new song object and add it to the current album's collection
             new_song = Song(song_field, new_artist)
             new_album.add_song(new_song)
 
-        # After read the last line of the text file, we will have an artist and album not stored
-        # so process them now
-        # because album is not stored until new album read in this function
-        if new_artist is not None:
-            if new_album is not None:
-                new_artist.add_album(new_album)
-            artist_list.append(new_artist)
-            
     return artist_list
 
 
@@ -148,24 +152,9 @@ def create_checkfile(artist_list):
 if __name__ == '__main__':
     
     #load_data()
-    artists = load_data("albums2.txt")
+    artists = load_data("albums3.txt")
     print("There are {} artists".format(len(artists)))
     
     # Write a new file with artist list to cross-validate against original
     create_checkfile(artists)
 
-
-#help(Song.__init__)
-#print(Song.__doc__)
-#print()
-#print(Song.__init__.__doc__)
-
-# You can add the docstring after the fact
-# Song.__init__.__doc__ = """Song init method
-        
-#         Args:
-#         \ttitle (str): Initializes the `title` attribute.
-#         \tartist (Artist): At Artist object representing the song's creator.
-#         \tduration (Optional [int]): Initial value for the `duration` attribute.
-#         \t\twill default to zero if not specified.
-#         """
