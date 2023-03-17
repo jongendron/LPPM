@@ -1,19 +1,23 @@
 # These classes are circular and have
 # garbage data. Python can handle this to an extent.
 
+#TODO: Modify the program so that the class structure matches the simplified diagram:
+# Artist objects can hold references to Album objects, and Album objects can hold references
+# to Song objects.
+
 class Song:
     """Class to represent a song
     
     Attributes:
     \ttitle (str): The title of the song.
-    \tartist (Artist): An artist object representing the song's creator.
+    \tartist (str): The name of the song's creater.
     \tduration (int): The duration of the song in seconds. May be zero.
     """
 
     def __init__(self, title, artist, duration=0):
         self.title = title
         #self.name = title
-        self.artist = artist
+        self.artist = artist        
         self.duration = duration
 
     def get_title(self):
@@ -28,8 +32,8 @@ class Album:
     Attributes:
         name (str): The name of the album.
         year (int): The year the album was released.
-        artist (Artist): The artist will default to an artist with the
-            name "Various Artists"
+        artist (str): The name of the artist responsible for the album. If not specified,
+            the artist will default to the name "Various Artists".
         tracks (List[Song]): A list of the songs on the album.
 
     Methods:
@@ -40,11 +44,13 @@ class Album:
         self.name = name
         self.year = year
         if artist is None:
-            self.artist = Artist("Various Artists")
+            #self.artist = Artist("Various Artists") # circular reference
+            self.artist = "Various Artists" # non circular reference
         else:
             self.artist = artist
+            #self.artist = artist.name
 
-        self. tracks = []
+        self.tracks = []
 
     def add_song(self, song, position=None):
         """Adds a song to the track list
@@ -103,11 +109,13 @@ class Artist:
         """
         album_found = find_object(name, self.albums) # finds address of object to edit
         if album_found is None:
-            print(name + " not found")
-            album_found = Album(name, year, self)
+            #print(name + " not found")
+            #album_found = Album(name, year, self) # causes circular reference to artist class
+            album_found = Album(name, year, self.name) # removes circular reference of artist class
             self.add_album(album_found)
         else:
-            print("Found album " + name)
+            #print("Found album " + name)
+            pass
 
         album_found.add_song(title) # TODO: Does this point to the album with the artist object
         # could/should I alternatively call on self?
