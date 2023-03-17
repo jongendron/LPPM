@@ -12,11 +12,18 @@ class Song:
 
     def __init__(self, title, artist, duration=0):
         self.title = title
+        #self.name = title
         self.artist = artist
         self.duration = duration
 
+    def get_title(self):
+        return self.title
+        
+    name = property(get_title) # `getter` for title (Song.name is now same as Song.title)
+
+
 class Album:
-    """ Class to represent an ASlbum, using it's track list. 
+    """ Class to represent an Album, using it's track list. 
     
     Attributes:
         name (str): The name of the album.
@@ -43,17 +50,19 @@ class Album:
         """Adds a song to the track list
         
         Args:
-            song (Song): A song to add.
+            song (Song): The title of the song to add.
             position (Optional [int]): If specified, the song will be added to that position
                 in the track list - inserting it between otehr songs if necessary.
                 Otherwise, the song will be added to teh end of the list.
                 if position is None
         """
-        if position is None:
-            self.tracks.append(song)
-        else:
-            self.tracks.insert(position, song) # insert to certain list position
-
+        song_found = find_object(song, self.tracks)
+        if song_found is None:
+            song_found = Song(song, self.artist)
+            if position is None:
+                self.tracks.append(song_found)
+            else:
+                self.tracks.insert(position, song_found)
 
 class Artist:
     """Basic class to store artist details.
@@ -81,10 +90,39 @@ class Artist:
         """
         self.albums.append(album)
 
+    def add_song(self, name, year, title):
+        """Add new song to the collection of albums
+        
+        This method will add the song to an album in the collection.
+        A new album will be created in teh collection if it doesn't exist.
+
+        Args:
+            name (str): The name of the album
+            year (int): The year the album was produced
+            title (str): The title of the song
+        """
+        album_found = find_object(name, self.albums) # finds address of object to edit
+        if album_found is None:
+            print(name + " not found")
+            album_found = Album(name, year, self)
+            self.add_album(album_found)
+        else:
+            print("Found album " + name)
+
+        album_found.add_song(title) # TODO: Does this point to the album with the artist object
+        # could/should I alternatively call on self?
+        # self.album[?] instead of album_found? or just use the pointer?
+        # I think because this pointer is temporily created within the
+        # -> .add_song() method, and because we don't loop through
+        # -> different data inputs within the method, then
+        # -> it is a valid pointer!
+
 
 def find_object(field, object_list):
     """Check `object_list` to see if object with a `name` attribute equal to `field` exists, return it if so.
-    `Conflict occures if list contains multiple objects with same name attribute.`"""
+    `Conflict occures if list contains multiple objects with same name attribute`.
+    If the output is saved to an object, it will have same address at location found
+    from this query."""
     for item in object_list:
         if item.name == field:
             return item
@@ -94,8 +132,7 @@ def find_object(field, object_list):
 def load_data(File: str="albums.txt"):
     """Simple program to load Arist/album data from text file.
     """
-    new_artist = None
-    new_album = None
+
     artist_list = []
 
     with open(File, "r") as albums:
@@ -106,34 +143,13 @@ def load_data(File: str="albums.txt"):
             #pline = ", ".join([artist_field, album_field, str(year_field), song_field]).rstrip(", ")
             #print(pline)
 
+            new_artist = find_object(artist_field, artist_list) # essentially a pointer
             if new_artist is None:
-                new_artist = Artist(artist_field) # initialize
+                new_artist = Artist(artist_field)
                 artist_list.append(new_artist)
-            elif new_artist.name != artist_field:
-                # We've just read details for a new artist
-                # retrieve the artist object if there is one
-                # otherwise, create a new artist object and add to artist list.
-                new_artist = find_object(artist_field, artist_list)
-                if new_artist is None:
-                    new_artist = Artist(artist_field)
-                    artist_list.append(new_artist)
-                #new_album = None #TODO: Causes new album to be added every time artist changes
-                
-            if new_album is None: #TODO: If all songs of album are not sequental, two instances of same Album are created and store different tracks (redundant)
-                new_album = Album(album_field, year_field, new_artist)
-                new_artist.add_album(new_album)
-            elif new_album.name != album_field:
-                # We've just read a new album for the current artist.
-                # Retrieve album object if there is one.
-                # otherwise create a new ablumn object and store it in the artist's collection.
-                new_album = find_object(album_field, new_artist.albums)
-                if new_album is None:
-                    new_album = Album(album_field, year_field, new_artist)    
-                    new_artist.add_album(new_album)
 
-            # create a new song object and add it to the current album's collection
-            new_song = Song(song_field, new_artist)
-            new_album.add_song(new_song)
+            # Focus on artists (.add_song() doesn't exist yet)
+            new_artist.add_song(album_field, year_field, song_field)
 
     return artist_list
 
