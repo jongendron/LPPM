@@ -5,25 +5,30 @@
 #jon.set_lives(300)
 
 from player import Player
+from enemy import Enemy, Troll
 
 if __name__ == '__main__':
 
-    jon = Player("Jon")
+    #jon = Player("Jon")
 
-    print('Name: ', jon._name)
-    print('Lives: ', jon.lives)
-    jon.lives -= 1
-    print(jon)
-    jon.lives -= 1
-    print(jon)
-    jon.lives -= 1
-    print(jon)
-    #jon._lives = 9
-    #print(jon)
-    jon.level = 3
-    print(jon)
-    jon.level -= 3
-    print(jon)
+    random_monster = Enemy("Basic Enemy", 12, 1)
+    print(random_monster)
 
-    jon.score = 500
-    print(jon)
+    random_monster.take_damage(4)
+    print(random_monster)
+
+    random_monster.take_damage(9)
+    print(random_monster)
+
+    random_monster.take_damage(9) # negative lives now ... which could be fixed
+    print(random_monster)
+
+    # Using object constructors to create troll enemies
+    enemy_troll = Troll() # inherits default arguements for Enemy superclass
+    print(enemy_troll)
+
+    #ugly_troll = Troll("Ugly Troll", 12, 3) # pass arguements to fullfil parameters of the Enemy superclass
+    #print(ugly_troll)
+
+    #bro_troll = Troll("Urg", 23) # no overloaded methods in python
+    #print(bro_troll)
