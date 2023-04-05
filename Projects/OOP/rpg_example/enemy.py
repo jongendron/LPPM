@@ -20,7 +20,28 @@ class Enemy(object): # inherit object superclass (same as above but more verbose
 
 
 class Troll(Enemy):  # 1st parameter is a superclass to inherit
-    """Troll class enemy."""
+    """Troll subclass of Enemy."""
 
     def __init__(self, name="Enemy Troll"): # current class constructor (this call cancels the superclass's constructor)
-        Enemy.__init__(self, name=name, lives=1, hit_points=23) # calls on Enemy superclass's constructor (__init__()) as part of Troll()'s __init__()
+        #Enemy.__init__(self, name=name, lives=1, hit_points=23) # Python 2: calls on Enemy superclass's constructor (__init__()) as part of Troll()'s __init__()
+        #super(Troll, self).__init__(name=name, lives=1, hit_points=23) # Python 3 way
+        super().__init__(name=name, lives=1, hit_points=23) # Compiler knows the superclass and current class so not necessary
+
+    def grunt(self):
+        print("Me {0.name}. {0.name} stomp you".format(self))
+
+
+#TODO: Create Vampyre class as subclass of Enemy
+# They should have 3 lives, and take 12 hitpoints of damge
+# Test with two or three instances.
+# Test if trolls can take damage too.
+class Vampyre(Enemy):
+    """Vampyre subclass of Enemy."""
+    default_name="Vampyre"
+    default_lives=3
+    default_hp=12
+    
+    def __init__(self):
+        super().__init__(name=self.default_name, lives=self.default_lives, hit_points=self.default_hp)
+
+    

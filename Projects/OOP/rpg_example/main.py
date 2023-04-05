@@ -24,11 +24,19 @@ if __name__ == '__main__':
     print(random_monster)
 
     # Using object constructors to create troll enemies
-    enemy_troll = Troll() # inherits default arguements for Enemy superclass
-    print(enemy_troll)
+    print()
+    troll1 = Troll("Pug")
+    print(troll1)
 
-    #ugly_troll = Troll("Ugly Troll", 12, 3) # pass arguements to fullfil parameters of the Enemy superclass
-    #print(ugly_troll)
+    troll2 = Troll("Erg")
+    print(troll2)
 
-    #bro_troll = Troll("Urg", 23) # no overloaded methods in python
-    #print(bro_troll)
+    troll3 = Troll("Urg")
+    print(troll3)
+
+    troll3.grunt()
+    troll2.grunt()
+    troll1.grunt()
+
+    #monster = Enemy("Basic enemy")
+    #monster.grunt() # fails because no grunt() method, only trolls have it.
