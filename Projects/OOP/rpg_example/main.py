@@ -24,3 +24,6 @@ if __name__ == '__main__':
     print(jon)
     jon.level -= 3
     print(jon)
+
+    jon.score = 500
+    print(jon)

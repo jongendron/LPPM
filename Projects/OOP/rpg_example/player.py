@@ -20,9 +20,11 @@ class Player(object):
             print("Lives cannot be negative")
             self._lives = 0
     
+    # getter method to retrieve level
     def _get_level(self):
         return self._level
     
+    # setter method to change level and score
     def _set_level(self, level):
         if level > 0: # limit level 1 or above
             delta = level - self._level
@@ -41,15 +43,18 @@ class Player(object):
     #lives = property(_get_lives(), _set_lives()) # incorrect, sets fset=return value than actual function (same with fset)
     lives = property(_get_lives, _set_lives) # method/property that accesses _get_lives & _set_lives
     level = property(_get_level, _set_level)
+
+    @property # decorator (alternative to getters/setters properties)
+    def score(self): # acts as getter method of a property
+        return self._score
+    
+    @score.setter # creates setter function for the decorator score
+    def score(self, score): # acts as setter method of property
+        self._score = score # make sure _score not score to avoid recursion
+    
     # What is returned when you print class instance
     def __str__(self):
         #return "Name: {0}, Lives: {1}, Level: {2}, Score: {3}" \
         #    .format(self._name, self.lives, self.level, self.score)
         return "Name: {0._name}, Lives: {0.lives}, Level: {0.level}, Score {0._score}".format(self)
         
-    # TODO: Modify Player class so the players' scores increase by 1000
-    # TODO: every time their level increases by one.
-    # TODO: i.e. two level ups -> +2000 pts to score
-    # TODO: if they go down a level they also lose 1000 pts
-    # TODO: players can't go below level 1
-    # TODO: Do this using properties
