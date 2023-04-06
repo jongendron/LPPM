@@ -3,6 +3,9 @@
 # If object has necessary attributes, than it can be used as arguement for function even if different class.
 # https://en.wikipedia.org/wiki/Duck_test
 
+# Example: when calling the print(<object>) function, any object can be passed as long as it has a __str__ method (which all do by default because of the object metaclass)
+# -> This is therefor polymorphism!
+
 class Duck(object):
 
     def walk(self):
