@@ -5,7 +5,8 @@
 #jon.set_lives(300)
 
 from player import Player
-from enemy import Enemy, Troll, Vampyre
+from enemy import Enemy, Troll, Vampyre, VampyreKing
+import random
 
 if __name__ == '__main__':
 
@@ -15,8 +16,8 @@ if __name__ == '__main__':
     #troll1 = Troll("Gronk")
     #print(troll1)
     
-    vamp1 = Vampyre("Dracula")
-    print(vamp1)
+    #vamp1 = Vampyre("Dracula")
+    #print(vamp1)
 
     #while vamp1.alive:
         #print(vamp1)
@@ -27,5 +28,12 @@ if __name__ == '__main__':
     #vamp1._lives = 0
     #vamp1._hp = 1
     #print(vamp1)
+
+    vampking = VampyreKing("Vlad")
+    print(vampking)
+
+    while vampking._alive:
+        print("\t",end="")
+        vampking.take_damage(random.randint(6,12))        
 
     

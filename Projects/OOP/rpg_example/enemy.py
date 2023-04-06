@@ -50,7 +50,10 @@ class Vampyre(Enemy):
     default_lives=3
     default_hp=12
     
+    #def __init__(self, name="Vampyre", lives=default_lives, hit_points=default_hp):
     def __init__(self, name="Vampyre"):
+        #super().__init__(name=name, lives=self.default_lives, hit_points=self.default_hp)
+        #super().__init__(name=name, lives=lives, hit_points=hit_points)
         super().__init__(name=name, lives=self.default_lives, hit_points=self.default_hp)
 
     def dodges(self):
@@ -66,3 +69,23 @@ class Vampyre(Enemy):
             super().take_damage(damage=damage, maxhp=maxhp) # call on superclass method take_damage
 
     
+# TODO: Create VampyreKing subclass of Vampyre
+# damage inflicted will be divided by 4
+# start off with 140 hitpoints
+
+class VampyreKing(Vampyre):
+    """VampyreKing subclass of Vampyre."""
+    default_lives = 3
+    default_hp = 140
+    damage_damper=4 # divide incoming damage by this amount for valid classes attacking it
+
+    def __init__(self, name="VampyreKing"):        
+        #super().__init__(name=name, lives=self.default_lives, hit_points=default_hp) # parent class no longer has these attributes
+        super().__init__(name=name)
+        self._lives = self.default_lives
+        self._hp = self.default_hp
+
+    # Override Vampyre take_damage method to divide damage by 4
+    # Do this indirectly by logging the change in hp
+    def take_damage(self, damage, maxhp=default_hp):
+        super().take_damage(damage=damage // self.damage_damper) # call on superclass method take_damage() from vampyre class (which includes dodging) rather than top superclass (Enemy)
