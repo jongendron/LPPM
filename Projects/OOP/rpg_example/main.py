@@ -9,31 +9,18 @@ from enemy import Enemy, Troll, Vampyre, VampyreKing
 import random
 
 if __name__ == '__main__':
-
-    #jon = Player("Jon")
-    #print(jon)
+    # Polymorphism (mulitple versions/forms) uses single method that can handle multiple (arbitrary) input parameter types
+    # Overloading allows one of multiple methods to be selected by examining the types of input parameters
     
-    #troll1 = Troll("Gronk")
-    #print(troll1)
+    # (ex) in static languages like C or Java, one function/method may have different versions
+    # -> to deal with different input arguements
+    # -> print performs differently when its provided a int, float, tupple, or string.
     
-    #vamp1 = Vampyre("Dracula")
-    #print(vamp1)
+    a = 3
+    b = "time"
+    c = 1, 2, 3 # tupple
 
-    #while vamp1.alive:
-        #print(vamp1)
-        #print("\t",end="")
-        #if not vamp1.dodges():
-        #vamp1.take_damage(1)
-
-    #vamp1._lives = 0
-    #vamp1._hp = 1
-    #print(vamp1)
-
-    vampking = VampyreKing("Vlad")
-    print(vampking)
-
-    while vampking._alive:
-        print("\t",end="")
-        vampking.take_damage(random.randint(6,12))        
-
+    print(a)
+    print(b)
+    print(c)
     
