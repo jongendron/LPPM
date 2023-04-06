@@ -5,38 +5,24 @@
 #jon.set_lives(300)
 
 from player import Player
-from enemy import Enemy, Troll
+from enemy import Enemy, Troll, Vampyre
 
 if __name__ == '__main__':
 
     #jon = Player("Jon")
+    vamp1 = Vampyre("Dracula")
+    print(vamp1)
 
-    random_monster = Enemy("Basic Enemy", 12, 1)
-    print(random_monster)
+    vamp2 = Vampyre("Count Chocula")
+    print(vamp2)
 
-    random_monster.take_damage(4)
-    print(random_monster)
+    vamp2.take_damage(6)
+    print(vamp2)
 
-    random_monster.take_damage(9)
-    print(random_monster)
+    vamp2.take_damage(7)
+    print(vamp2)
 
-    random_monster.take_damage(9) # negative lives now ... which could be fixed
-    print(random_monster)
-
-    # Using object constructors to create troll enemies
-    print()
-    troll1 = Troll("Pug")
+    troll1 = Troll("Henry")
     print(troll1)
-
-    troll2 = Troll("Erg")
-    print(troll2)
-
-    troll3 = Troll("Urg")
-    print(troll3)
-
-    troll3.grunt()
-    troll2.grunt()
-    troll1.grunt()
-
-    #monster = Enemy("Basic enemy")
-    #monster.grunt() # fails because no grunt() method, only trolls have it.
+    troll1.take_damage(30)
+    print(troll1)

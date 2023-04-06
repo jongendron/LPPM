@@ -7,13 +7,15 @@ class Enemy(object): # inherit object superclass (same as above but more verbose
         self.hit_points = hit_points
         self.lives = lives
 
-    def take_damage(self, damage):
+    def take_damage(self, damage, maxhp=30): # TODO: is there a way to replace 30 with the maxhp for a subclass?
         remaining_points = self.hit_points - damage
         if remaining_points >= 0:
             self.hit_points = remaining_points
             print("I took {} points damage and have {} left".format(damage, self.hit_points))
         else: # enemy died (lost a life)
             self.lives -= 1
+            self.hit_points = maxhp
+            print(f"I lost 1 life and my hp has been reset to {maxhp}")
 
     def __str__(self):
         return "Name: {0.name}, Lives: {0.lives}, Hitpoints: {0.hit_points}".format(self)
@@ -37,11 +39,10 @@ class Troll(Enemy):  # 1st parameter is a superclass to inherit
 # Test if trolls can take damage too.
 class Vampyre(Enemy):
     """Vampyre subclass of Enemy."""
-    default_name="Vampyre"
     default_lives=3
     default_hp=12
     
-    def __init__(self):
-        super().__init__(name=self.default_name, lives=self.default_lives, hit_points=self.default_hp)
+    def __init__(self, name="Vampyre"):
+        super().__init__(name=name, lives=self.default_lives, hit_points=self.default_hp)
 
     
