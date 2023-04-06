@@ -25,8 +25,15 @@ class DocType(Tag):
 
 class Head(Tag):
 
-    def __init__(self):
+    # def __init__(self):
+    #     super().__init__('head', '')
+    def __init__(self, title=None):
         super().__init__('head', '')
+        if title:
+            self._title_tag = str(Tag('title', title)) # add a title
+            self.contents += "\n\t"
+            self.contents += self._title_tag
+            self.contents += "\n"
 
 
 class Body(Tag):
@@ -49,9 +56,9 @@ class Body(Tag):
 # HtmlDoc class is composed of DocType, Head, and Body classes (Composition)
 class HtmlDoc(object):
 
-    def __init__(self):
+    def __init__(self, title=None):
         self._doc_type = DocType()
-        self._head = Head()
+        self._head = Head(title=title)
         self._body = Body()
 
     def add_tag(self, name, contents): # purposly had same same so the same method is always done whereever .add_tag is seen
@@ -65,10 +72,19 @@ class HtmlDoc(object):
         print('</html>', file=file)
 
 if __name__ == '__main__':
-    my_page = HtmlDoc()
+    my_page = HtmlDoc(title='Document Title')
     my_page.add_tag('h1', 'Main Heading')
     my_page.add_tag('h2', 'sub-heading')
     my_page.add_tag('p', 'This is a paragraph that will appear on the page.')
     
     with open("test.html", "w") as test_doc:
         my_page.display(file=test_doc)
+
+# TODO: Modify program so that Head class can include a Title tag.
+# <doctype info>
+# <html>
+# <head>
+#   <title> stuff </title>
+# </head>
+# <body> stuff </body>
+# </html>
