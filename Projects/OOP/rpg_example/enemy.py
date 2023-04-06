@@ -1,24 +1,36 @@
+# use regular expressions (regex) to find all digits followed by a "." and add a _ at the end
+# search: (\{\d\.)
+# replace: $1_
+import random
+
+
 #class Enemy:
 class Enemy(object): # inherit object superclass (same as above but more verbose, but only in Python 3)
     """Highest superclass of enemies (aside from object class)."""
 
     def __init__(self, name="Enemy", hit_points=0, lives=1):
-        self.name = name
-        self.hit_points = hit_points
-        self.lives = lives
+        self._name = name
+        self._hp = hit_points
+        self._lives = lives
+        self._alive = True
 
-    def take_damage(self, damage, maxhp=30): # TODO: is there a way to replace 30 with the maxhp for a subclass?
-        remaining_points = self.hit_points - damage
+    def take_damage(self, damage, maxhp=12): # TODO: is there a way to replace 30 with the maxhp for a subclass?
+        remaining_points = self._hp - damage
         if remaining_points >= 0:
-            self.hit_points = remaining_points
-            print("I took {} points damage and have {} left".format(damage, self.hit_points))
-        else: # enemy died (lost a life)
-            self.lives -= 1
-            self.hit_points = maxhp
-            print(f"I lost 1 life and my hp has been reset to {maxhp}")
+            self._hp = remaining_points
+            print("I took {} points damage and have {} left".format(damage, self._hp))
+        else: 
+            self._lives -= 1
+            if self._lives > 0:                            
+                self._hp = maxhp
+                print(f"{self._name} lost a life.")
+            else:
+                self._hp = 0
+                self._alive = False
+                print(f"{self._name} has died.") # enemy died (lost a life)
 
     def __str__(self):
-        return "Name: {0.name}, Lives: {0.lives}, Hitpoints: {0.hit_points}".format(self)
+        return "Name: {0._name}, Lives: {0._lives}, Hitpoints: {0._hp}".format(self) # replacement fields aren't changed during refactoring -> rename methods
 
 
 class Troll(Enemy):  # 1st parameter is a superclass to inherit
@@ -30,13 +42,9 @@ class Troll(Enemy):  # 1st parameter is a superclass to inherit
         super().__init__(name=name, lives=1, hit_points=23) # Compiler knows the superclass and current class so not necessary
 
     def grunt(self):
-        print("Me {0.name}. {0.name} stomp you".format(self))
+        print("Me {0._name}. {0._name} stomp you".format(self))
 
 
-#TODO: Create Vampyre class as subclass of Enemy
-# They should have 3 lives, and take 12 hitpoints of damge
-# Test with two or three instances.
-# Test if trolls can take damage too.
 class Vampyre(Enemy):
     """Vampyre subclass of Enemy."""
     default_lives=3
@@ -44,5 +52,17 @@ class Vampyre(Enemy):
     
     def __init__(self, name="Vampyre"):
         super().__init__(name=name, lives=self.default_lives, hit_points=self.default_hp)
+
+    def dodges(self):
+        if random.randint(1,3) == 3:
+            print("****** {0._name} dodges ******".format(self))
+            return True
+        else:
+            return False
+        
+    # Method to override take_damage from Enemy class (rewrites it for each instance of Vampyre rather than source for class)
+    def take_damage(self, damage, maxhp=12):
+        if not self.dodges(): # check if vampire dodges
+            super().take_damage(damage=damage, maxhp=maxhp) # call on superclass method take_damage
 
     

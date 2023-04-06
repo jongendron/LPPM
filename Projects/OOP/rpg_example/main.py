@@ -10,19 +10,22 @@ from enemy import Enemy, Troll, Vampyre
 if __name__ == '__main__':
 
     #jon = Player("Jon")
+    #print(jon)
+    
+    #troll1 = Troll("Gronk")
+    #print(troll1)
+    
     vamp1 = Vampyre("Dracula")
     print(vamp1)
 
-    vamp2 = Vampyre("Count Chocula")
-    print(vamp2)
+    #while vamp1.alive:
+        #print(vamp1)
+        #print("\t",end="")
+        #if not vamp1.dodges():
+        #vamp1.take_damage(1)
 
-    vamp2.take_damage(6)
-    print(vamp2)
+    #vamp1._lives = 0
+    #vamp1._hp = 1
+    #print(vamp1)
 
-    vamp2.take_damage(7)
-    print(vamp2)
-
-    troll1 = Troll("Henry")
-    print(troll1)
-    troll1.take_damage(30)
-    print(troll1)
+    
