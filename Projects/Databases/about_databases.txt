@@ -1,3 +1,8 @@
+Resource
+- https://www.sqlite.org/index.html
+- https://www.sqlite.org/download.html
+- https://sqlite.org/mostdeployed.html
+
 Database systems 
 - collections of data that are organized in a certain way to enable efficient storage, retrieval, and mangement.
 
