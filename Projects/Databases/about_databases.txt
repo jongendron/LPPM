@@ -1,0 +1,72 @@
+Database systems 
+- collections of data that are organized in a certain way to enable efficient storage, retrieval, and mangement.
+
+Database management systems (DBMS)
+- softwares used to manage and manipulate data in a database system.
+- DBMS has functions that enable users to create, modify, and query data in a database, as well as mechanisms for security.
+- Has several components such as database engines that provide management functionality.
+
+Database engines
+- software libraries that provide the underlying funcationality for accessing and managing databases.
+- Can be a component of DBMS container software, or can be standalone (SQlite).
+- database engines alone could be used to create a database from scratch, but is not practical compared to using a DBMS (requires heavy coding).
+
+Database
+- container for all the data you storage.
+- in sqlite, entire database is stored in a single file (not true of most large database systems).
+
+Database Dictionary
+- provides a comprehensive list of the structure and types of data in the database.
+- sq_lite_master is the master table that defines the structure.
+
+Table
+- collection of related data held in the database.
+- (ex) contacts: {name, address, phone-number}, invoices: {invoice, date, description, amount}.
+
+Field
+- basic unit of data in a table.
+- (ex) invoices: {invoice, date, description, amount} <- these are fields (columns).
+- similar to variable, they have attributes like: name, type.
+- (ex) name=amount, type=string.
+
+Row/record
+- single set of data containing all the columns in the table.
+- (ex) row 2 of invoices: {invoice, date, description, amount} = [001, "09/26/2023", "purchase", 200].
+
+Flat File database
+- stores all data in a single table.
+- can result in a lot of duplication.
+
+Relational databases
+- split data into multiple tables to prevent duplication.
+- link data by specific identifiers.
+
+Joins
+- link tables by field(s).
+- (ex) customer: {name, address, credit_limit, balance} <-> invoices: {invoice, date, description, amount, name} are linked by name field to reduce duplication.
+
+Normalization (Linking tables) 
+- relates data between 2 or more tables.
+- The more links created the higher the normalization.
+- (ex) customer: {name, address, credit_limit, balance} <-> customer_invoices: {name, invoice} <-> invoices: {invoice, date, description, amount}.
+- (ex continued) customer_invoices is linked to customer table by "name" field and to invoices table by "invoice" field.
+
+View
+- selection of rows and columns, possible from more than one table.
+- can contain some columns from multiple tables.
+- brings data together from more than one joined table.
+- (ex) customer_invoice_view: {name, date, description, amount}.
+- SQlite light does not allow data from Views to be updated, can't update data in a view to date to the corresponding tables, instead must be added to original tables.
+
+SQlite
+- main commands: create, select, insert, update, where, values, table('field1', 'field2', 'field3', ...) ... (usually uppercased but lowercase works), and accompanied by to, or from.
+- commands end with ";".
+- Field types are just for user reference, they don't actually control data that you want to input (can insert any data type, but this causes problems when calling on it).
+- if command starts with "." then it's a SQLite command, not SQL.
+- UPDATE command warnings: updates entire field if you don't define row!!!
+- .backup will back up a table (can be restored later).
+- .restore will restore a backedup table.
+- WHERE claus can be used to filter data from a table.
+- NULLs can be inserted into rows with VALUES(NULL, NULL, NULL, ...) and deleted with "WHERE <field> IS NULL".
+
+*** SELECT, UPDATE, DELETE, INSERT ***

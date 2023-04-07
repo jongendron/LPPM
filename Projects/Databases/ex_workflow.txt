@@ -1,0 +1,116 @@
+(.conda)PS C:\Users\PETBUser\dev\Python\projects\LPPM\Projects\Databases> sqlite3 test.db
+SQLite version 3.40.1 2022-12-28 14:03:47
+Enter ".help" for usage hints.
+sqlite> CREATE TABLE contacts(name text, phone integer, email text);
+sqlite> INSERT INTO contacts(name, phone, email) VALUES('Jon', 7745516682, "jonmgendron@gmail.com");
+sqlite> INSERT INTO contacts VALUES('Tim', 5088394032, "timmybu@gmail.com");                         
+sqlite> INSERT INTO contacts VALUES('Jimmy', "+(1)5098294032", "jamesweibler@gmail.com"); 
+sqlite> SELECT * FROM contacts;
+Jon|7745516682|jonmgendron@gmail.com
+Tim|5088394032|timmybu@gmail.com
+Jimmy|+(1)5098294032|jamesweibler@gmail.com
+sqlite> SELECT name FROM contacts;
+Jon
+Tim
+Jimmy
+sqlite> SELECT name, phone FROM contacts; 
+Jon|7745516682
+Tim|5088394032
+Jimmy|+(1)5098294032
+sqlite> SELECT name, phone, email FROM contacts; 
+Jon|7745516682|jonmgendron@gmail.com
+Tim|5088394032|timmybu@gmail.com
+Jimmy|+(1)5098294032|jamesweibler@gmail.com
+sqlite> .headers on
+sqlite> SELECT name, phone, email FROM contacts;
+name|phone|email
+Jon|7745516682|jonmgendron@gmail.com
+Tim|5088394032|timmybu@gmail.com
+Jimmy|+(1)5098294032|jamesweibler@gmail.com
+sqlite>
+sqlite> SELECT * FROM contacts WHERE name=Jon;
+Parse error: no such column: Jon
+  SELECT * FROM contacts WHERE name=Jon;
+                      error here ---^
+sqlite> SELECT * FROM contacts WHERE name="Jon"; 
+name|phone|email
+Jon|7745516682|jonmgendron@gmail.com
+sqlite> SELECT * FROM contacts WHERE phone="7745516682"; 
+name|phone|email
+Jon|7745516682|jonmgendron@gmail.com
+sqlite> SELECT * FROM contacts WHERE phone=7745516682;   
+name|phone|email
+Jon|7745516682|jonmgendron@gmail.com
+sqlite> SELECT * FROM contacts WHERE email=jonmgendron@gmail.com; 
+Parse error: near "@gmail": syntax error
+  SELECT * FROM contacts WHERE email=jonmgendron@gmail.com;
+                                  error here ---^
+sqlite> SELECT * FROM contacts WHERE email="jonmgendron@gmail.com"; 
+name|phone|email
+Jon|7745516682|jonmgendron@gmail.com
+sqlite> SELECT name, email FROM contacts WHERE email="jonmgendron@gmail.com"; 
+name|email
+Jon|jonmgendron@gmail.com
+sqlite> .backup testbackup                                                   
+sqlite> DELETE FROM contacts;
+sqlite> SELECT * FROM contacts;
+sqlite> .headers on
+sqlite> SELECT * FROM contacts;
+sqlite> INSERT INTO contacts VALUES("Jib", 1234567890, "jin@gmail.com");
+sqlite> SELECT * FROM contacts;
+name|phone|email
+Jib|1234567890|jin@gmail.com
+sqlite> .restore testbackup
+sqlite> SELECT * FROM contacts;
+name|phone|email
+Jon|7745516682|jonmgendron@gmail.com
+Tim|5088394032|timmybu@gmail.com
+Jimmy|+(1)5098294032|jamesweibler@gmail.com
+sqlite>
+sqlite> DELETE FROM contacts WHERE name=Jimmy;
+Parse error: no such column: Jimmy
+  DELETE FROM contacts WHERE name=Jimmy;
+                    error here ---^
+sqlite> DELETE FROM contacts WHERE name="Jimmy"; 
+sqlite> SELECT * FROM contacts;                  
+name|phone|email
+Jon|7745516682|jonmgendron@gmail.com
+Tim|5088394032|timmybu@gmail.com
+sqlite>
+sqlite> INSERT INTO contacts DEFAULT VALUES;
+sqlite> SELECT * FROM contacts;
+name|phone|email
+Jon|7745516682|jonmgendron@gmail.com
+Tim|5088394032|timmybu@gmail.com
+||
+sqlite>    
+sqlite> .tables
+contacts
+sqlite>
+sqlite> .schema
+CREATE TABLE contacts(name text, phone integer, email text);
+sqlite>
+sqlite> .tables contacts
+contacts
+sqlite>
+sqlite> .schema contacts
+CREATE TABLE contacts(name text, phone integer, email text);
+sqlite>
+sqlite> .dump
+PRAGMA foreign_keys=OFF;
+BEGIN TRANSACTION;
+CREATE TABLE contacts(name text, phone integer, email text);
+INSERT INTO contacts VALUES('Jon',7745516682,'jonmgendron@gmail.com');
+INSERT INTO contacts VALUES('Tim',5088394032,'timmybu@gmail.com');
+INSERT INTO contacts VALUES(NULL,NULL,NULL);
+COMMIT;
+sqlite>
+sqlite> .dump contacts
+PRAGMA foreign_keys=OFF;
+BEGIN TRANSACTION;
+CREATE TABLE contacts(name text, phone integer, email text);
+INSERT INTO contacts VALUES('Jon',7745516682,'jonmgendron@gmail.com');
+INSERT INTO contacts VALUES('Tim',5088394032,'timmybu@gmail.com');
+INSERT INTO contacts VALUES(NULL,NULL,NULL);
+COMMIT;
+sqlite>
