@@ -1,77 +1,214 @@
-Resource
+# Resource
 - https://www.sqlite.org/index.html
 - https://www.sqlite.org/download.html
 - https://sqlite.org/mostdeployed.html
 
-Database systems 
+# Database systems 
 - collections of data that are organized in a certain way to enable efficient storage, retrieval, and mangement.
 
-Database management systems (DBMS)
+# Database management systems (DBMS)
 - softwares used to manage and manipulate data in a database system.
 - DBMS has functions that enable users to create, modify, and query data in a database, as well as mechanisms for security.
 - Has several components such as database engines that provide management functionality.
 
-Database engines
+# Database engines
 - software libraries that provide the underlying funcationality for accessing and managing databases.
 - Can be a component of DBMS container software, or can be standalone (SQlite).
 - database engines alone could be used to create a database from scratch, but is not practical compared to using a DBMS (requires heavy coding).
 
-Database
+# Database
 - container for all the data you storage.
 - in sqlite, entire database is stored in a single file (not true of most large database systems).
 
-Database Dictionary
+# Database Dictionary
 - provides a comprehensive list of the structure and types of data in the database.
 - sq_lite_master is the master table that defines the structure.
 
-Table
+# Table
 - collection of related data held in the database.
 - (ex) contacts: {name, address, phone-number}, invoices: {invoice, date, description, amount}.
 
-Field
+# Field
 - basic unit of data in a table.
 - (ex) invoices: {invoice, date, description, amount} <- these are fields (columns).
 - similar to variable, they have attributes like: name, type.
 - (ex) name=amount, type=string.
 
-Row/record
+# Row/record
 - single set of data containing all the columns in the table.
 - (ex) row 2 of invoices: {invoice, date, description, amount} = [001, "09/26/2023", "purchase", 200].
 
-Flat File database
+# Flat File database
 - stores all data in a single table.
 - can result in a lot of duplication.
 
-Relational databases
+# Relational databases
 - split data into multiple tables to prevent duplication.
 - link data by specific identifiers.
 
-Joins
+# Joins
 - link tables by field(s).
 - (ex) customer: {name, address, credit_limit, balance} <-> invoices: {invoice, date, description, amount, name} are linked by name field to reduce duplication.
 
-Normalization (Linking tables) 
+# Normalization (Linking tables) 
 - relates data between 2 or more tables.
 - The more links created the higher the normalization.
 - (ex) customer: {name, address, credit_limit, balance} <-> customer_invoices: {name, invoice} <-> invoices: {invoice, date, description, amount}.
 - (ex continued) customer_invoices is linked to customer table by "name" field and to invoices table by "invoice" field.
 
-View
+# Views
 - selection of rows and columns, possible from more than one table.
 - can contain some columns from multiple tables.
 - brings data together from more than one joined table.
 - (ex) customer_invoice_view: {name, date, description, amount}.
 - SQlite light does not allow data from Views to be updated, can't update data in a view to date to the corresponding tables, instead must be added to original tables.
 
-SQlite
+# SQlite
 - main commands: create, select, insert, update, where, values, table('field1', 'field2', 'field3', ...) ... (usually uppercased but lowercase works), and accompanied by to, or from.
-- commands end with ";".
+- commands end with ".".
 - Field types are just for user reference, they don't actually control data that you want to input (can insert any data type, but this causes problems when calling on it).
 - if command starts with "." then it's a SQLite command, not SQL.
 - UPDATE command warnings: updates entire field if you don't define row!!!
-- .backup will back up a table (can be restored later).
-- .restore will restore a backedup table.
-- WHERE claus can be used to filter data from a table.
+- WHERE clause can be used to filter data from a table.
 - NULLs can be inserted into rows with VALUES(NULL, NULL, NULL, ...) and deleted with "WHERE <field> IS NULL".
 
-*** SELECT, UPDATE, DELETE, INSERT ***
+#%% .backup will back up a table (can be restored later)
+.backup <table_name>
+
+#%% .restore will restore a backedup table
+.restore <backup_name>
+
+# Standard Practice
+- all tables should contain a field called "_id" that basically counts the rows and preserves a unique id that doesn't change
+- it is common to link tables by this "_id", but to do this, the target table must have a different field name to describe the "_id" field from the table being linked.
+
+# SELECT, UPDATE, DELETE, INSERT are common commands
+
+# Keys
+- Keys (indexes) are used to speed of searches and joins. They are typically sorted to allow for faster searching.
+- do not need to be unique for each row.
+- defining a key says the table should be sorted on that field/column.
+-> relational database rows are not ordered (like sets or java maps).
+
+# Primary Keys (only 1 per table), usually the _id column.
+- must be unique!, otherwise causes "UNIQUE constraint error".
+- automatically NOT NULL column/field.
+- In SQLite, unique numbers are automatically provided if one is not provided.
+- "NOT NULL" fields should indicate rows need to have a value for this field.
+
+#%% This will add a unique _id
+INSERT INTO artist(name) VALUES("Beyonce")
+
+#%% This will also automatically add a unique _id
+INSERT INTO artist VALUES(NULL, "DUDE")
+
+# Querying
+- sifting / parsing through a database's data.
+- tables are returned by default based on the order of the primary key.
+- "ORDER BY" clause lets you order by a field.
+
+#%% Querying Example: sort artists by alphebetical order of artist name
+SELECT * FROM artists ORDER BY name
+
+#%% "COLLATE NOCASE" clause disregards capitalization during sorting, otherwise lowercase comes after uppercase
+SELECT * FROM artists ORDER BY name COLLATE NOCASE
+
+#%% "DESC" clause changes sorting from ascending to descending order
+SELECT * FROM artists ORDER BY name COLLATE NOCASE DESC
+
+#%% Ordering by more than one field will group fields together when sorting. This sorts first by artists _id then by album name
+SELECT * FROM albums ORDER BY artist, name COLLATE NOCASE 
+
+# Joining
+- extracts data from multiple tables and joins by common fields (identifiers).
+- Best practice is to use "dot notation" to specify the table containing the field your specifying as it exists in the database at all time.
+
+#%% Joining Example 1
+SELECT songs.track, songs.title, albums.name FROM songs JOIN albums ON songs.album = albums._id
+
+# Join Example 1 (about)
+- 1st specify which fields you want to extract from a joined table. Make sure to use "dot notation" to specify the host table if there is ambiguity in the field names.
+- 2nd use "JOIN" clause to join two or more tables based on specified field.
+-> "songs JOIN albums ON songs.album = albums._id" is the final table we want to extract values from step 1 from.
+-> "songs JOIN albums" says we want to join table songs with albums.
+-> "ON songs.album = albums._id" is the condition we want to join them on.
+- "INNER JOIN" is the same as "JOIN" which is the most common join command.
+-> "SELECT songs.track, songs.title, albums.name FROM songs INNER JOIN albums ON songs.album = albums._id" is the same command.
+-> JOINED table keeps both primary keys from the tables, and therefore both could be requested with "songs._id, albums._id".
+
+# Mini Challenge
+- produce a list of all artists, with their albums, in alphabetical order of artists name.
+- "SELECT artists.name, albums.name FROM artists INNER JOIN albums ON artists._id = albums.artist ORDER BY artists.name, albums.name;" .
+
+#%% Joining Multiple Tables (Example)
+SELECT artists.name, albums.name, songs.track, songs.title FROM songs
+INNER JOIN albums ON songs.album = albums._id
+INNER JOIN artists ON albums.artist = artists._id
+ORDER BY artists.name, albums.name, songs.track";
+
+# Join Multiple Tables (about)
+- 1st songs joins albums (on songs.album = albums._id).
+- 2nd this joined table joins with artists (on albums.artist = artists._id).
+-> remember to reference container table's fields even when doing comparisons of already joined tables.
+- 3rd the fields artists.name, albums.name, songs.track, and songs.title are all extracted from this final joined table.
+
+# Ordering
+- must maintain this scrict order.
+- SELECT * FROM -> JOIN(s) -> WHERE -> ORDER BY.
+
+# WHERE clauses (including partial)
+- can search for partial string using 'WHERE <field> LIKE "%<partial string>%"' wildcard clause.
+-> "%%" is the wildcard character in SQL.
+-> "?" instead of "*" to match a sequence of 0+ characters.
+-> "=" performs a case senstive search, whereas "LIKE" performs non case sensitive search.
+-> this means search for all occurences of <field> that contain the partial string <partial string>.
+-> the <partial string> is not case sensitive in the LIKE clause for searching.
+-> as opposed to '=', which requires <string> be a full name and correct case of the row value for that field.
+-> "%<partial string>%" means the query is looking for <partial string> anywhere in the field's row value.
+-> "<partial string>%" means that the query looks for <partial string> at the start of the field's row value.
+-> "%<partial string>" means that the query looks for <partial string> at the end of the field's row value.
+-> This is just like with "*" wildcard in bash.
+
+#%%
+SELECT artists.name, albums.name, songs.track, songs.title FROM songs
+INNER JOIN albums ON songs.album = albums._id
+INNER JOIN artists ON albums.artist = artists._id
+WHERE songs.title LIKE "%doctor%"
+ORDER BY artists.name, albums.name, songs.track
+
+# Views (virtual tables)
+- can't modify, update, delete, or insert data.
+- can query though.
+
+#%%
+CREATE VIEW artist_list AS
+SELECT artists.name, albums.name, songs.track, songs.title FROM songs 
+INNER JOIN albums ON songs.album = albums._id
+INNER JOIN artists ON albums.artist = artists._id
+ORDER BY artists.name, albums.name, songs.track
+
+CREATE VIEW album_list AS
+SELECT name FROM albums
+ORDER BY name COLLATE NOCASE;
+
+Deleting a View
+DROP VIEW album_list;
+
+SELECT * FROM artist_list WHERE name LIKE "jefferson%"
+
+# View Field naming
+- SQLite will create unique fields names (such as name:1) when creating a view from two or more fields with the same name.
+-> Best to explicity name the columns if there is ambiguity.
+-> This is does using the "AS" clause when selecting fields.
+
+#%%
+DROP VIEW artist_list;
+CREATE VIEW artist_list AS
+SELECT artists.name AS artist, albums.name AS album, songs.track, songs.title FROM songs 
+INNER JOIN albums ON songs.album = albums._id
+INNER JOIN artists ON albums.artist = artists._id
+ORDER BY artists.name, albums.name, songs.track
+
+
+
+
