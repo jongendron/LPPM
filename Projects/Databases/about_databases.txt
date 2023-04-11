@@ -209,6 +209,108 @@ INNER JOIN albums ON songs.album = albums._id
 INNER JOIN artists ON albums.artist = artists._id
 ORDER BY artists.name, albums.name, songs.track
 
+#%% .schema
+CREATE TABLE songs (_id INTEGER PRIMARY KEY, track INTEGER, title TEXT NOT NULL, album INTEGER);
+CREATE TABLE albums (_id INTEGER PRIMARY KEY, name TEXT NOT NULL, artist INTEGER);
+CREATE TABLE artists (_id INTEGER PRIMARY KEY, name TEXT NOT NULL);
 
+CREATE VIEW album_list AS
+SELECT name FROM albums
+ORDER BY name COLLATE NOCASE;
+
+CREATE VIEW artist_list AS
+SELECT artists.name AS artist, albums.name AS album, songs.track, songs.title FROM songs
+INNER JOIN albums ON songs.album = albums._id
+INNER JOIN artists ON albums.artist = artists._id
+ORDER BY artists.name, albums.name, songs.track;
+
+.backup music-backup2;
+
+#%% Filtering fields by logical expressions (based on field values)
+DELETE FROM songs WHERE track < 50; /* track is less than 50 */
+SELECT * FROM songs WHERE track <> 71; /* track does not equal 71 */
+
+#%% count(): count the number of elements for a field or table
+SELECT count(*) FROM songs; /* counts number of rows in songs table */
+SELECT count(*) FROM albums; /* counts number of rows in albums table */
+SELECT count(*) FROM artists; /* counts number of rows in artists table */
+SELECT count(_id) FROM songs; /* counts number of elements in _id field of songs table */
+
+#%% Restore the database
+.restore music-backup2;
+SELECT count(*) FROM songs;
+SELECT count(*) FROM albums;
+SELECT count(*) FROM artists;
+
+#%% Challenge 1: Select titles of all the songs on the album "Forbidden"
+SELECT albums.name AS album, songs.title AS song, songs.track FROM songs 
+INNER JOIN albums ON songs.album = albums._id
+WHERE albums.name LIKE "forbidden"
+
+#%% Challenge 2: Repeat previous query but display songs in track order (include track number)
+SELECT albums.name AS album, songs.title AS song, songs.track FROM songs 
+INNER JOIN albums ON songs.album = albums._id
+WHERE albums.name LIKE "forbidden"
+ORDER by albums.name, songs.track
+COLLATE NOCASE;
+
+#%% Challenge 3: Display all songs for the band "Deep Purple"
+SELECT artists.name AS artist, albums.name AS album, songs.title AS song, songs.track FROM songs 
+INNER JOIN albums ON songs.album = albums._id
+INNER JOIN artists ON albums.artist = artists._id
+WHERE artists.name LIKE "Deep Purple"
+ORDER by artists.name, albums.name, songs.track
+COLLATE NOCASE
+LIMIT 10;
+
+#%% Challenge 3 (Alternative Answer)
+CREATE VIEW music AS
+SELECT artists.name AS artist, albums.name AS album, songs.title AS song, songs.track FROM songs 
+INNER JOIN albums ON songs.album = albums._id
+INNER JOIN artists ON albums.artist = artists._id
+ORDER by artists.name, albums.name, songs.track
+COLLATE NOCASE;
+
+SELECT * FROM music
+WHERE artist LIKE "Deep Purple"
+LIMIT 5;
+
+.backup music-backup3
+
+#%% Challenge 4: Rename the band "Mehitabel" to "One Kitten". Hint: "SET artists.name" won't work, just specify "name"
+UPDATE artists
+SET name = "One Kitten"
+WHERE artists.name LIKE "Mehitabel"; /* always use table.field */
+
+#%% Challenge 5: Check that Challenge 4 was successful
+SELECT * FROM artists
+WHERE artists.name = "One Kitten";
+
+#%% Challenge 6: Select titles of all songs by Aerosmith in alphabetical order. Include only the title in the output.
+SELECT song FROM music
+WHERE artist LIKE "aerosmith"
+ORDER BY song
+COLLATE NOCASE;
+
+#%% Challenge 7: Replace the column that you used in the previous answer with count(title) to get just a count of the # of songs.
+SELECT COUNT(*) FROM music
+WHERE artist LIKE "aerosmith";
+
+#%% Challenge 8: (Research Internet) Repeat step 6 without any duplicates
+SELECT DISTINCT song FROM music
+WHERE artist LIKE "aerosmith"
+ORDER BY song
+COLLATE NOCASE;
+
+
+#%% Challenge 9: (Research Internet) Repeat step 6, but get a count(*) without duplicates
+SELECT COUNT(DISTINCT song) FROM music
+WHERE artist LIKE "aerosmith";
+
+#%% Repeat Challenge 9 to find number of artists and number of albums
+SELECT count(DISTINCT artist), count(DISTINCT album), count(DISTINCT song) FROM music
+WHERE artist LIKE "aerosmith"
+ORDER BY song
+COLLATE NOCASE;
 
 
