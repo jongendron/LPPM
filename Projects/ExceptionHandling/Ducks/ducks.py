@@ -49,6 +49,9 @@ class Penguin(object):
     def quack(self):
         print("Are you having a laugh? I'm a penguin!")
 
+class Mallard(Duck):
+    pass
+
 
 class Flock(object):
 
@@ -56,19 +59,21 @@ class Flock(object):
         self.flock = []
 
     def add_duck(self, duck: Duck) -> None: # parameter annotation (: type) and returns (-> type) - both are type hints!
-        self.flock.append(duck)
+        #if type(duck) is Duck: # DO NOT DO THIS, it prevents subclasses from being used!
+        if isinstance(duck, Duck) is Duck: # checks if object is an instance of a class (Works for superclasses as well!)
+            self.flock.append(duck)
 
     def migrate(self):
-        for duck in self.flock:
-            problem = None
+        problem = None
+        for duck in self.flock:            
             try:
                 duck.fly()
             # except AttributeError: # if one of the "duck" instances does not have the necessary attribute (.fly()) it will throw an AttributeError (Penguins in this case)
-            except AttributeError as e: # stores a reference to the exception as a variable
+            except AttributeError as _e: # stores a reference to the exception as a variable
                 #pass # pass over this "duck" in the flock
                 print("One duck down")
                 #raise # reraiases the exception/error caught. Useful for debugging!
-                problem = e # save exception reference to problem object
+                problem = _e # save exception reference to problem object
         if problem:
             raise problem # raise the error that was recognized in the try block
 
