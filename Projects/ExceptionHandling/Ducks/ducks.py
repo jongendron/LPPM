@@ -60,9 +60,21 @@ class Flock(object):
 
     def add_duck(self, duck: Duck) -> None: # parameter annotation (: type) and returns (-> type) - both are type hints!
         #if type(duck) is Duck: # DO NOT DO THIS, it prevents subclasses from being used!
-        if isinstance(duck, Duck): # checks if object is an instance of a class (Works for superclasses as well!), but not Pythonic because doesn't focus on behavior
+        #if isinstance(duck, Duck): # checks if object is an instance of a class (Works for superclasses as well!), but not Pythonic because doesn't focus on behavior
+        
+        # Best to check the behavior of object rather than class (More Pythonic)
+        # 1st check that the arguement duck has an attribute "fly"
+        #fly_method = getattr(duck, 'fly', None) # Checks object's dictionary to see if it contains attribute specified and returns that method. Return None if it doesn't exist (instead of error).
+        # fly_method = getattr(duck, 'fly') # Raises error
+        fly_method = getattr(duck, 'fly', None) # Checks object's dictionary to see if it contains attribute specified and returns that method. Return None if it doesn't exist (instead of error).
+        
+        # 2nd check that "fly" is a method and not a data attribute (variable)
+        if callable(fly_method): # checks if you can call the attribute (aka its a method). Data attributes are generally not callable.
             self.flock.append(duck)
-
+        else:
+            #raise TypeError("Cannot add duck, are you sure it's not a " + str(type(duck).__name__)) # Type Error is good choice b/c the obect type is limiting behavior.            
+            raise TypeError("'" + str(type(duck).__name__) + "' class does not have method 'fly'")
+        
     def migrate(self):
         problem = None
         for duck in self.flock:            

@@ -8,8 +8,8 @@ duck4 = ducks.Duck()
 duck5 = ducks.Duck()
 duck6 = ducks.Duck()
 duck7 = ducks.Duck()
-#percy = ducks.Penguin() # can't fly :(
-percy = ducks.Mallard() 
+percy = ducks.Penguin() # can't fly :(
+#percy = ducks.Mallard() 
 
 flock.add_duck(donald)
 flock.add_duck(daisy)
