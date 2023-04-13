@@ -60,7 +60,7 @@ class Flock(object):
 
     def add_duck(self, duck: Duck) -> None: # parameter annotation (: type) and returns (-> type) - both are type hints!
         #if type(duck) is Duck: # DO NOT DO THIS, it prevents subclasses from being used!
-        if isinstance(duck, Duck) is Duck: # checks if object is an instance of a class (Works for superclasses as well!)
+        if isinstance(duck, Duck): # checks if object is an instance of a class (Works for superclasses as well!), but not Pythonic because doesn't focus on behavior
             self.flock.append(duck)
 
     def migrate(self):
