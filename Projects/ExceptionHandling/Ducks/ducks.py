@@ -1,13 +1,7 @@
-# Python is Dynamically typed Language (not static).
-# It is concerned with how objects behave, rather than the type of object.
 # If object has necessary attributes, than it can be used as arguement for function even if different class.
 # https://en.wikipedia.org/wiki/Duck_test
 
-# Example: when calling the print(<object>) function, any object can be passed as long as it has a __str__ method (which all do by default because of the object metaclass)
-# -> This is therefor polymorphism!
-
-# Composition is when you build a parent class using other classes to define its attributes
-# For example Ducks are composed of Wings in the example below.
+#https://www.python.org/dev/peps/pep-0484 # -> Non-goals -> The meaning of annotations
 
 class Wing(object):
     """Wing Class"""
@@ -56,12 +50,31 @@ class Penguin(object):
         print("Are you having a laugh? I'm a penguin!")
 
 
-# def test_duck(duck):
-#     duck.walk()
-#     duck.swim()
-#     duck.quack()
+class Flock(object):
+
+    def __init__(self):
+        self.flock = []
+
+    def add_duck(self, duck: Duck) -> None: # parameter annotation (: type) and returns (-> type) - both are type hints!
+        self.flock.append(duck)
+
+    def migrate(self):
+        for duck in self.flock:
+            problem = None
+            try:
+                duck.fly()
+            # except AttributeError: # if one of the "duck" instances does not have the necessary attribute (.fly()) it will throw an AttributeError (Penguins in this case)
+            except AttributeError as e: # stores a reference to the exception as a variable
+                #pass # pass over this "duck" in the flock
+                print("One duck down")
+                #raise # reraiases the exception/error caught. Useful for debugging!
+                problem = e # save exception reference to problem object
+        if problem:
+            raise problem # raise the error that was recognized in the try block
+
 
 if __name__ == '__main__':
     donald = Duck()
     donald.fly() # calls on donald._wing attribute's method fly() (donald._wing.fly())
  
+
