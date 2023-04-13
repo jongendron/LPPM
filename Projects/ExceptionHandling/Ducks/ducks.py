@@ -40,6 +40,9 @@ class Duck(object):
 class Penguin(object):
     """Penguin Class"""
 
+    def __init__(self):
+        self.fly = self.aviate # assins fly attribute to reference of aviate method
+
     def walk(self):
         print("Waddle, waddle, I waddle too.")
 
@@ -48,6 +51,9 @@ class Penguin(object):
 
     def quack(self):
         print("Are you having a laugh? I'm a penguin!")
+
+    def aviate(self):
+        print("I won the lottery and bought a learjet!")
 
 class Mallard(Duck):
     pass
@@ -80,6 +86,7 @@ class Flock(object):
         for duck in self.flock:            
             try:
                 duck.fly()
+                raise AttributeError("Testing exception handler in migrate.") # TODO (remove): manually raise exception to test your exception handler 
             # except AttributeError: # if one of the "duck" instances does not have the necessary attribute (.fly()) it will throw an AttributeError (Penguins in this case)
             except AttributeError as _e: # stores a reference to the exception as a variable
                 #pass # pass over this "duck" in the flock
