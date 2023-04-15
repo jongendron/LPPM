@@ -1,20 +1,28 @@
 import sqlite3
-from datetime import datetime
+#from datetime import datetime
+import datetime
+import pytz
 
-db = sqlite3.connect("accounts.sqlite")
-#db = sqlite3.connect("accounts.db")
+#db = sqlite3.connect("accounts.sqlite")
+db = sqlite3.connect("accounts.db")
 
 # SQLite has 5 column/field storage classes (not data types): https://www.sqlite.org/datatype3.html
 # ... apart from integer primary key fields, you can actually store any kind of value in any kind of column
 # Datetime values can be handled by Python sqlite3 library supports datetime values (performs conversion automatically to/from datetime values)
 db.execute("CREATE TABLE IF NOT EXISTS  accounts (name TEXT PRIMARY KEY NOT NULL, balance INTEGER NOT NULL)") # more data efficient to keep balance in separate table
-db.execute("CREATE TABLE IF NOT EXISTS transactions (time TIMESTAMP NOT NULL, account TEXT NOT NULL," 
-           "amount INTEGER NOT NULL, PRIMARY KEY (time, account))") # composit key made up of time and account
+#db.execute("CREATE TABLE IF NOT EXISTS transactions (time TIMESTAMP NOT NULL, account TEXT NOT NULL," 
+#           "amount INTEGER NOT NULL, PRIMARY KEY (time, account))") # composit key made up of time and account
+db.execute("CREATE TABLE IF NOT EXISTS history (time TIMESTAMP NOT NULL, account TEXT NOT NULL," 
+           "amount INTEGER NOT NULL, PRIMARY KEY (time, account))") # composit key made up of time and account | this does not add another column that is a tuple
 
 
 # Working in Cents (100ths of dollar) to avoid decimal data loss from binary transactions
 class Account(object):
 
+    @staticmethod
+    def _current_time(): # static method for the class (rather than instance)
+        return pytz.utc.localize(datetime.datetime.utcnow())
+    
     def __init__(self, name: str, opening_balance: int = 0):
         cursor = db.execute("SELECT name, balance FROM accounts WHERE (name = ?)", (name,)) # filter database to only include name
         row = cursor.fetchone() # fetch the first row (as tuple) or None if data exists 
@@ -28,8 +36,10 @@ class Account(object):
             self.name = name
             self._balance = opening_balance
             cursor.execute("INSERT INTO accounts VALUES(?, ?)", (name, opening_balance)) # add person to accounts table of database 
-            time = datetime.utcnow()
-            cursor.execute("INSERT INTO transactions VALUES(?, ?, ?)", (time, name, opening_balance)) # TODO: shouldn't we also add initial row for transactions?
+            #time = datetime.datetime.utcnow()
+            #deposit_time = pytz.utc.localize(datetime.datetime.utcnow())
+            deposit_time = Account._current_time() # static
+            cursor.execute("INSERT INTO history VALUES(?, ?, ?)", (deposit_time, name, opening_balance)) # TODO: shouldn't we also add initial row for transactions?
             cursor.connection.commit()
             print("Account created for {}. ".format(self.name), end='')
         self.show_balance()
@@ -38,15 +48,36 @@ class Account(object):
         #print("Account created for {}. ".format(self.name), end='')
         #self.show_balance()
 
+    def _save_update(self, amount):
+        new_balance = self._balance + amount
+        transaction_time = Account._current_time()
+        db.execute("UPDATE accounts SET balance = ? WHERE (name = ?)", (new_balance, self.name)) # update balance table 
+        db.execute("INSERT INTO history VALUES(?, ?, ?)", (transaction_time, self.name, amount)) # update history table
+        db.commit()
+        self._balance = new_balance
+
     def deposit(self, amount: int) -> float:
         if amount > 0.0:
-            self._balance += amount
+            # new_balance = self._balance + amount
+            # #deposit_time = pytz.utc.localize(datetime.datetime.utcnow())
+            # deposit_time = Account._current_time()
+            # db.execute("UPDATE accounts SET balance = ? WHERE (name = ?)", (new_balance, self.name)) # update balance table 
+            # db.execute("INSERT INTO history VALUES(?, ?, ?)", (deposit_time, self.name, amount)) # update history table
+            # db.commit()
+            # self._balance += amount 
+            self._save_update(amount)
             print("{:.2f} deposited.".format(amount / 100))
         return self._balance / 100
     
     def withdraw(self, amount: int) -> float:
-        if 0 < amount <= self._balance:
-            self._balance -= amount
+        if 0 < amount <= self._balance:            
+            # new_balance = self._balance - amount
+            # withdrawal_time = Account._current_time()
+            # db.execute("UPDATE accounts SET balance = ? WHERE (name = ?)", (new_balance, self.name)) # update balance table 
+            # db.execute("INSERT INTO history VALUES(?, ?, ?)", (withdrawal_time, self.name, -amount)) # update history table
+            # db.commit()
+            # self._balance -= amount
+            self._save_update(-amount) # negate for withdrawal
             print("{:2f} withdrawn.".format(amount / 100))
             return amount / 100
         else:
@@ -64,7 +95,7 @@ if __name__ == "__main__":
     jon.deposit(10)
     jon.deposit(10)
     jon.withdraw(30)
-    jon.withdraw(0)
+    #jon.withdraw(0)
     jon.show_balance()
 
     terry = Account("Terry")
