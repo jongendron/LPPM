@@ -21,7 +21,9 @@ class Account(object):
 
     @staticmethod
     def _current_time(): # static method for the class (rather than instance)
-        return pytz.utc.localize(datetime.datetime.utcnow())
+        return pytz.utc.localize(datetime.datetime.utcnow()) # best to convert from utc later
+        #local_time = pytz.utc.localize(datetime.datetime.utcnow()) # beware, sqlite <-> Python is not timezone aware
+        #return local_time.astimezone()
     
     def __init__(self, name: str, opening_balance: int = 0):
         cursor = db.execute("SELECT name, balance FROM accounts WHERE (name = ?)", (name,)) # filter database to only include name
