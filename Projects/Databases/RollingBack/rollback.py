@@ -4,7 +4,8 @@ import datetime
 import pytz
 
 #db = sqlite3.connect("accounts.sqlite")
-db = sqlite3.connect("accounts.db")
+#db = sqlite3.connect("accounts.db")
+db = sqlite3.connect("accounts.db", detect_types=sqlite3.PARSE_DECLTYPES)
 
 # SQLite has 5 column/field storage classes (not data types): https://www.sqlite.org/datatype3.html
 # ... apart from integer primary key fields, you can actually store any kind of value in any kind of column
@@ -15,6 +16,10 @@ db.execute("CREATE TABLE IF NOT EXISTS  accounts (name TEXT PRIMARY KEY NOT NULL
 db.execute("CREATE TABLE IF NOT EXISTS history (time TIMESTAMP NOT NULL, account TEXT NOT NULL," 
            "amount INTEGER NOT NULL, PRIMARY KEY (time, account))") # composit key made up of time and account | this does not add another column that is a tuple
 
+db.execute("CREATE VIEW IF NOT EXISTS localhistory AS"
+    " SELECT history.time AS time, strftime('%Y-%m-%d %H:%M:%S', history.time, 'localtime') AS localtime,"
+    " unixepoch(history.time, 'localtime') / 3600 - unixepoch(history.time, 'utc') / 3600 AS timezone,"
+    " history.account, history.amount FROM history")
 
 # Working in Cents (100ths of dollar) to avoid decimal data loss from binary transactions
 class Account(object):
