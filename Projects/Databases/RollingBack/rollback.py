@@ -2,6 +2,7 @@ import sqlite3
 #from datetime import datetime
 import datetime
 import pytz
+import pickle
 
 #db = sqlite3.connect("accounts.sqlite")
 #db = sqlite3.connect("accounts.db")
@@ -13,8 +14,8 @@ db = sqlite3.connect("accounts.db", detect_types=sqlite3.PARSE_DECLTYPES)
 db.execute("CREATE TABLE IF NOT EXISTS  accounts (name TEXT PRIMARY KEY NOT NULL, balance INTEGER NOT NULL)") # more data efficient to keep balance in separate table
 #db.execute("CREATE TABLE IF NOT EXISTS transactions (time TIMESTAMP NOT NULL, account TEXT NOT NULL," 
 #           "amount INTEGER NOT NULL, PRIMARY KEY (time, account))") # composit key made up of time and account
-db.execute("CREATE TABLE IF NOT EXISTS history (time TIMESTAMP NOT NULL, utc_offset INTEGER NOT NULL, account TEXT NOT NULL," 
-           "amount INTEGER NOT NULL, PRIMARY KEY (time, account))") # composit key made up of time and account | this does not add another column that is a tuple
+db.execute("CREATE TABLE IF NOT EXISTS history (time TIMESTAMP NOT NULL, utc_offset INTEGER NOT NULL, tz INTEGER NOT NULL," 
+           "account TEXT NOT NULL, amount INTEGER NOT NULL, PRIMARY KEY (time, account))") # composit key made up of time and account | this does not add another column that is a tuple
 
 # Create View containing local time instead of UTC
 # db.execute("CREATE VIEW IF NOT EXISTS localhistory AS"
@@ -36,8 +37,13 @@ class Account(object):
         utc_offset = local_time.utcoffset()
         #print(utc_time, utc_time.utcoffset(), sep=" | ")
         #print(local_time, local_time.utcoffset(), sep=" | ")
-        #return utc_time
-        return (utc_time, local_time, utc_offset) # tuple of both
+        
+        # Pickeling a class instance (byte stream) -> save to DB column
+        # aware time values contains time zone info in it's tz object
+        # pickel a class instance -> converts instance into bite stream -> store into a db column
+        # similar to serializing a class instance in Java
+        tz = local_time.tzinfo
+        return (utc_time, local_time, utc_offset, tz) # tuple of both
     
     def __init__(self, name: str, opening_balance: int = 0):
         cursor = db.execute("SELECT name, balance FROM accounts WHERE (name = ?)", (name,)) # filter database to only include name
@@ -54,9 +60,12 @@ class Account(object):
             cursor.execute("INSERT INTO accounts VALUES(?, ?)", (name, opening_balance)) # add person to accounts table of database 
             #time = datetime.datetime.utcnow()
             #deposit_time = pytz.utc.localize(datetime.datetime.utcnow())
-            deposit_time = Account._current_time() # static
-            #cursor.execute("INSERT INTO history VALUES(?, ?, ?)", (deposit_time, name, opening_balance)) # TODO: shouldn't we also add initial row for transactions?
-            cursor.execute("INSERT INTO history VALUES(?, ?, ?, ?)", (deposit_time[0], deposit_time[2].total_seconds(), name, opening_balance)) # TODO: shouldn't we also add initial row for transactions?
+            #deposit_time = Account._current_time() # static
+            #cursor.execute("INSERT INTO history VALUES(?, ?, ?)", (deposit_time, name, opening_balance))
+            #cursor.execute("INSERT INTO history VALUES(?, ?, ?, ?)", (deposit_time[0], deposit_time[2].total_seconds(), name, opening_balance)) 
+            utc_time, _, utc_offset, tz = Account._current_time()
+            pickled_tz = pickle.dumps(tz) # byte string object for tz
+            cursor.execute("INSERT INTO history VALUES(?, ?, ?, ?, ?)", (utc_time, utc_offset.total_seconds(), pickled_tz, self.name, opening_balance))
             cursor.connection.commit()
             print("Account created for {}. ".format(self.name), end='')
         self.show_balance()
@@ -67,10 +76,13 @@ class Account(object):
 
     def _save_update(self, amount):
         new_balance = self._balance + amount
-        transaction_time = Account._current_time()
+        utc_time, _, utc_offset, tz = Account._current_time()
+        pickled_tz = pickle.dumps(tz) # byte string object for tz
+
         db.execute("UPDATE accounts SET balance = ? WHERE (name = ?)", (new_balance, self.name)) # update balance table 
         #db.execute("INSERT INTO history VALUES(?, ?, ?)", (transaction_time, self.name, amount)) # update history table
-        db.execute("INSERT INTO history VALUES(?, ?, ?, ?)", (transaction_time[0], transaction_time[2].total_seconds(), self.name, amount)) # update history table
+        #db.execute("INSERT INTO history VALUES(?, ?, ?, ?)", (utc_time, local_time.total_seconds(), self.name, amount)) # update history table
+        db.execute("INSERT INTO history VALUES(?, ?, ?, ?, ?)", (utc_time, utc_offset.total_seconds(), pickled_tz, self.name, amount))
         db.commit()
         self._balance = new_balance
 

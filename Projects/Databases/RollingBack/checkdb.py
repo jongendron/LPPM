@@ -1,5 +1,6 @@
 import sqlite3
 import pytz
+import pickle
 
 #db = sqlite3.connect("accounts.db")
 db = sqlite3.connect("accounts.db", detect_types=sqlite3.PARSE_DECLTYPES) # automatically check for field types and convert when extracted with Python
@@ -24,7 +25,16 @@ db = sqlite3.connect("accounts.db", detect_types=sqlite3.PARSE_DECLTYPES) # auto
 # "history.account, history.amount FROM history"):
 #    print(row)
 
-for row in db.execute("SELECT * FROM localhistory"):
-    print(row)
+# for row in db.execute("SELECT * FROM localhistory"):
+#     print(row)
 
+# SQLite Functions: https://www.sqlite.org/lang_corefunc.html
+for row in db.execute("SELECT * FROM history"):
+    utc_time = pytz.utc.localize(row[0])
+    pickled_zone = row[2]
+    #zone = pytz.timezone("Australia/Adelaide") # works, but "ACDC" does not work (avoid saving tz name to database)
+    zone = pickle.loads(pickled_zone)
+    local_time = utc_time.astimezone(zone)
+    #print("{}\t{}\t{}\t{}".format(utc_time, local_time, local_time.tzinfo, zone))
+    print("{}\t{}\t{}".format(utc_time, local_time, local_time.tzinfo))
 db.close()
