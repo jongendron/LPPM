@@ -13,22 +13,31 @@ db = sqlite3.connect("accounts.db", detect_types=sqlite3.PARSE_DECLTYPES)
 db.execute("CREATE TABLE IF NOT EXISTS  accounts (name TEXT PRIMARY KEY NOT NULL, balance INTEGER NOT NULL)") # more data efficient to keep balance in separate table
 #db.execute("CREATE TABLE IF NOT EXISTS transactions (time TIMESTAMP NOT NULL, account TEXT NOT NULL," 
 #           "amount INTEGER NOT NULL, PRIMARY KEY (time, account))") # composit key made up of time and account
-db.execute("CREATE TABLE IF NOT EXISTS history (time TIMESTAMP NOT NULL, account TEXT NOT NULL," 
+db.execute("CREATE TABLE IF NOT EXISTS history (time TIMESTAMP NOT NULL, utc_offset INTEGER NOT NULL, account TEXT NOT NULL," 
            "amount INTEGER NOT NULL, PRIMARY KEY (time, account))") # composit key made up of time and account | this does not add another column that is a tuple
 
+# Create View containing local time instead of UTC
+# db.execute("CREATE VIEW IF NOT EXISTS localhistory AS"
+#     " SELECT history.time AS time, strftime('%Y-%m-%d %H:%M:%S', history.time, 'localtime') AS localtime,"
+#     " unixepoch(history.time, 'localtime') / 3600 - unixepoch(history.time, 'utc') / 3600 AS timezone,"
+#     " history.account, history.amount FROM history")
+
 db.execute("CREATE VIEW IF NOT EXISTS localhistory AS"
-    " SELECT history.time AS time, strftime('%Y-%m-%d %H:%M:%S', history.time, 'localtime') AS localtime,"
-    " unixepoch(history.time, 'localtime') / 3600 - unixepoch(history.time, 'utc') / 3600 AS timezone,"
-    " history.account, history.amount FROM history")
+    " SELECT strftime('%Y-%m-%d %H:%M:%S', history.time, 'localtime') AS localtime,"
+    " history.utc_offset, history.account, history.amount FROM history")
 
 # Working in Cents (100ths of dollar) to avoid decimal data loss from binary transactions
 class Account(object):
 
     @staticmethod
-    def _current_time(): # static method for the class (rather than instance)
-        return pytz.utc.localize(datetime.datetime.utcnow()) # best to convert from utc later
-        #local_time = pytz.utc.localize(datetime.datetime.utcnow()) # beware, sqlite <-> Python is not timezone aware
-        #return local_time.astimezone()
+    def _current_time(): # static method for the class (rather than instance)        
+        utc_time = pytz.utc.localize(datetime.datetime.utcnow()) # best to convert from utc later
+        local_time = utc_time.astimezone()
+        utc_offset = local_time.utcoffset()
+        #print(utc_time, utc_time.utcoffset(), sep=" | ")
+        #print(local_time, local_time.utcoffset(), sep=" | ")
+        #return utc_time
+        return (utc_time, local_time, utc_offset) # tuple of both
     
     def __init__(self, name: str, opening_balance: int = 0):
         cursor = db.execute("SELECT name, balance FROM accounts WHERE (name = ?)", (name,)) # filter database to only include name
@@ -46,7 +55,8 @@ class Account(object):
             #time = datetime.datetime.utcnow()
             #deposit_time = pytz.utc.localize(datetime.datetime.utcnow())
             deposit_time = Account._current_time() # static
-            cursor.execute("INSERT INTO history VALUES(?, ?, ?)", (deposit_time, name, opening_balance)) # TODO: shouldn't we also add initial row for transactions?
+            #cursor.execute("INSERT INTO history VALUES(?, ?, ?)", (deposit_time, name, opening_balance)) # TODO: shouldn't we also add initial row for transactions?
+            cursor.execute("INSERT INTO history VALUES(?, ?, ?, ?)", (deposit_time[0], deposit_time[2].total_seconds(), name, opening_balance)) # TODO: shouldn't we also add initial row for transactions?
             cursor.connection.commit()
             print("Account created for {}. ".format(self.name), end='')
         self.show_balance()
@@ -59,7 +69,8 @@ class Account(object):
         new_balance = self._balance + amount
         transaction_time = Account._current_time()
         db.execute("UPDATE accounts SET balance = ? WHERE (name = ?)", (new_balance, self.name)) # update balance table 
-        db.execute("INSERT INTO history VALUES(?, ?, ?)", (transaction_time, self.name, amount)) # update history table
+        #db.execute("INSERT INTO history VALUES(?, ?, ?)", (transaction_time, self.name, amount)) # update history table
+        db.execute("INSERT INTO history VALUES(?, ?, ?, ?)", (transaction_time[0], transaction_time[2].total_seconds(), self.name, amount)) # update history table
         db.commit()
         self._balance = new_balance
 
