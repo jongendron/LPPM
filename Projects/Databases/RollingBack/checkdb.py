@@ -37,4 +37,9 @@ for row in db.execute("SELECT * FROM history"):
     local_time = utc_time.astimezone(zone)
     #print("{}\t{}\t{}\t{}".format(utc_time, local_time, local_time.tzinfo, zone))
     print("{}\t{}\t{}".format(utc_time, local_time, local_time.tzinfo))
+
+print("*" * 60)
+for row in db.execute("SELECT * FROM localhistory"):
+    print(row)
+
 db.close()

@@ -44,6 +44,7 @@ class Account(object):
         # similar to serializing a class instance in Java
         tz = local_time.tzinfo
         return (utc_time, local_time, utc_offset, tz) # tuple of both
+        #return 1, local_time, utc_offset, tz # causes ununique Primary key composite (time, account)
     
     def __init__(self, name: str, opening_balance: int = 0):
         cursor = db.execute("SELECT name, balance FROM accounts WHERE (name = ?)", (name,)) # filter database to only include name
@@ -79,12 +80,21 @@ class Account(object):
         utc_time, _, utc_offset, tz = Account._current_time()
         pickled_tz = pickle.dumps(tz) # byte string object for tz
 
-        db.execute("UPDATE accounts SET balance = ? WHERE (name = ?)", (new_balance, self.name)) # update balance table 
-        #db.execute("INSERT INTO history VALUES(?, ?, ?)", (transaction_time, self.name, amount)) # update history table
-        #db.execute("INSERT INTO history VALUES(?, ?, ?, ?)", (utc_time, local_time.total_seconds(), self.name, amount)) # update history table
-        db.execute("INSERT INTO history VALUES(?, ?, ?, ?, ?)", (utc_time, utc_offset.total_seconds(), pickled_tz, self.name, amount))
-        db.commit()
-        self._balance = new_balance
+        try:
+            db.execute("UPDATE accounts SET balance = ? WHERE (name = ?)", (new_balance, self.name)) # update balance table 
+            db.execute("INSERT INTO history VALUES(?, ?, ?, ?, ?)", (utc_time, utc_offset.total_seconds(), pickled_tz, self.name, amount))
+        except sqlite3.Error:
+            # we roll back changes even despite not calling commit increase there are downstream changes to db
+            # without rolling back here, there are changes leaked downstream in the program
+            # because in the try block, db.execute() -> accounts does not fail, so those changes carry on to next db.commit()
+            db.rollback() # rollback in updates that are pending (don't do what's in the try block)
+            #pass
+        else:
+            db.commit() # only commit if no rollback
+            self._balance = new_balance # only update balance if previous transactions don't fail
+        #finally:
+            #db.commit() # can commit nothing
+
 
     def deposit(self, amount: int) -> float:
         if amount > 0.0:
