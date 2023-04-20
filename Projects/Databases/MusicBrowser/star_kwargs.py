@@ -51,7 +51,32 @@ def print_backwards(*args, **kwargs): # uses a predefined kwarg (with default)
 # with open("backwards.txt", 'w') as backwards:    
 #     print_backwards("Hello", "planet", "earth", "take", "me", "to", "your", "leader", file=backwards, sep='\n', end='\n')
 
-print("Hello", "planet", "earth", "take", "me", "to", "your", "leader", sep='|', end='\n')
-print_backwards("Hello", "planet", "earth", "take", "me", "to", "your", "leader", sep='|', end='\n')
+#print("Hello", "planet", "earth", "take", "me", "to", "your", "leader", sep='|', end='\n')
+#print_backwards("Hello", "planet", "earth", "take", "me", "to", "your", "leader", sep='|', end='\n')
+
+def print_backwards2(*args, **kwargs):
+    end_character = kwargs.pop('end', '\n') # return '\n' if no value found
+    sep_character = kwargs.pop('sep', ' ') # return ' ' if no value found
+    #for word in args[::-1]:
+    for word in args[:0:-1]: # stops before 0
+        print(word[::-1], end=sep_character, **kwargs)
+    #print(end=end_character) # which means we don't need this line
+    print(args[0][::-1], end=end_character, **kwargs) # print firt word separately
+
+    # TODO: Could also loop through words and join them to single list or tuple and use only 1 print
+
+print("Hello", "planet", "earth", "take", "me", "to", "your", "leader", sep='\n**\n', end='\n')
+print_backwards2("Hello", "planet", "earth", "take", "me", "to", "your", "leader", sep='\n**\n', end='\n')
+
+# TODO: Could also subclass of print?
+
+# TODO: Using list comprehension
+
+def backwards_print(*args, **kwargs):
+    sep_character = kwargs.pop('sep', ' ')
+    print(sep_character.join(word[::-1] for word in args[::-1]), **kwargs) # using list comprehension 
+
+print("*" * 60)
+backwards_print("Hello", "planet", "earth", "take", "me", "to", "your", "leader", sep='\n**\n', end='\n')
 
 
