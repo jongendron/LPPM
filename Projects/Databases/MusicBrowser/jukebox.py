@@ -7,6 +7,10 @@ except ImportError: # python 2
 
 conn = sqlite3.connect("music.db") # database connection
 
+# When using multiple list boxs and <<ListboxSelect>> as a bound widget
+# you must use exportselection=False
+# Reference: https://stackoverflow.com/questions/60336671/tkinter-binding-listboxselect-to-function-with-multiple-listboxes-in-frame
+
 # Scrollbox class
 class Scrollbox(tkinter.Listbox):
 
@@ -24,6 +28,7 @@ class Scrollbox(tkinter.Listbox):
 
 def get_albums(event): # bound function call is passed event
     lb = event.widget # retrieve reference to widget that triggers the effect
+    print("lb: ", lb, "") # print label box
     index = lb.curselection()[0] # listbox has curselection() that returns tuple of all selected items in the list [0] only lets first value being selected
     # retrieve artist name from listbox curselection
     artist_name = lb.get(index), # The trailing ',' makes the results into a tuple (<value>, ) also works, this is 
@@ -40,6 +45,7 @@ def get_albums(event): # bound function call is passed event
 
 def get_songs(event):
     lb = event.widget
+    print("lb: ", lb) # print label box
     index = int(lb.curselection()[0])
     album_name = lb.get(index),
 
@@ -76,7 +82,8 @@ tkinter.Label(mainWindow, text="Songs").grid(row=0, column=2)
 
 # Artists Listbox
 #artistList = tkinter.Listbox(mainWindow)
-artistList = Scrollbox(mainWindow, background='white')
+#artistList = Scrollbox(mainWindow, background='white')
+artistList = Scrollbox(mainWindow, background='white', exportselection=False)
 artistList.grid(row=1, column=0, sticky='nsew', rowspan=2, padx=(30,0))
 artistList.config(border=2, relief='sunken')
 
@@ -95,7 +102,8 @@ artistList.bind('<<ListboxSelect>>', get_albums)  # when item is selected from a
 albumLV = tkinter.Variable(mainWindow)
 albumLV.set(("Choose an artist",)) # to keep all words of string on same line use a tuple
 #albumList = tkinter.Listbox(mainWindow, listvariable=albumLV) # link albumList Listbox to albumLV Variable
-albumList = Scrollbox(mainWindow, listvariable=albumLV)
+#albumList = Scrollbox(mainWindow, listvariable=albumLV)
+albumList = Scrollbox(mainWindow, listvariable=albumLV, exportselection=False)
 albumList.grid(row=1, column=1, sticky='nsew', padx=(30,0))
 albumList.config(border=2, relief='sunken')
 
@@ -109,7 +117,8 @@ albumList.bind('<<ListboxSelect>>', get_songs) # find function to action
 songLV = tkinter.Variable(mainWindow)
 songLV.set(("Choose a song",))
 #songList = tkinter.Listbox(mainWindow, listvariable=songLV) # link songList Listbox to albumLV Variable
-songList = Scrollbox(mainWindow, listvariable=songLV)
+#songList = Scrollbox(mainWindow, listvariable=songLV)
+songList = Scrollbox(mainWindow, listvariable=songLV, exportselection=False)
 songList.grid(row=1, column=2, sticky='nsew', padx=(30,0))
 songList.config(border=2, relief='sunken')
 
