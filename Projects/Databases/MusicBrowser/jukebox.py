@@ -30,8 +30,9 @@ class DataListBox(Scrollbox):
         # Scollbox.__init__(self, window, **kwargs)  # Python 2
         super().__init__(window, **kwargs)
 
-        self.linked_box = None  # linked widget (listbox in our case)
-        self.link_field = None  # field to link widgets by
+        self.linked_box = None  # linked child widget
+        self.link_field = None  # field linked with parent widget
+        self.link_value = None # id for link_field of parent widget's current selection
 
         self.cursor = connection.cursor() # work with cursors rather than connection directly
         self.table = table
@@ -53,6 +54,7 @@ class DataListBox(Scrollbox):
         widget.link_field = link_field  # field to link widgets together by
 
     def requery(self, link_value=None):
+        self.link_value = link_value  # store the id, so we know the "master" record we're poulated from        
         if link_value and self.link_field:  # ensures there is infact a linked field between two listboxes
             sql = self.sql_select + " WHERE " + self.link_field + "=?" + self.sql_sort
             # print(sql)  # TODO: delte this line
@@ -70,7 +72,6 @@ class DataListBox(Scrollbox):
             self.linked_box.clear()
             self.linked_box.insert(tkinter.END, "Select an Album")
 
-    #def on_select(self, event):
     def on_select(self, event):
         """method to select item from gui, then use its value to requery the linked database."""
         
@@ -78,16 +79,22 @@ class DataListBox(Scrollbox):
             # print(self is event.widget)  # TODO: self should be the same as event.widget (event.widget points to it).
             if self.curselection(): # test that curselection() isn't empty
                 index = self.curselection()[0] # listbox has curselection() that returns tuple of all selected items in the list [0] only lets first value being selected    
-                value = self.get(index), # retrieve artist name from listbox curselection
+                value = self.get(index), # retrieve artist name from listbox curselection (',' makes it tuple)                
 
-                # get the link_id (_id) from the specified datbase table
-                link_id = self.cursor.execute(self.sql_select + " WHERE " + self.field + "=?", value).fetchone()[1] # _id should be second column of tuple | this grabs first row
-                print(f"link_id: {link_id}")  # TODO: delete this line
+                # get the ID from the database row
+                # make sure we are getting the correct one, by including link_value if appropriate
+                sql_on_select = self.sql_select + " WHERE " + self.field + "=?"               
+                if self.link_value:
+                    value = value[0], self.link_value
+                    sql_on_select = sql_on_select + " AND " + self.link_field + "=?"                  
+                
+                # print(sql_on_select)  # TODO: delete this line
+                print(value)  # TODO: delete this line
+                link_id = self.cursor.execute(sql_on_select, value).fetchone()[1]  # _id should be second column of tuple | this grabs first row                    
+                # print(f"link_id: {link_id}")  # TODO: delete this line
                 self.linked_box.requery(link_id)
-
-                # link_id2 = self.cursor.execute(self.sql_select + " WHERE " + self.field + "=?", value)
-                # for row in link_id2:
-                #     print(row)
+                # self.linked_box.link_value = link_id  # if you want to store the link_value after on_select (jon version)
+ 
     
 if __name__ == "__main__":
     conn = sqlite3.connect("music.db") # database connection
