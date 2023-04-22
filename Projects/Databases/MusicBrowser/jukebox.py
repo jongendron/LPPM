@@ -93,7 +93,7 @@ class DataListBox(Scrollbox):
                 link_id = self.cursor.execute(sql_on_select, value).fetchone()[1]  # _id should be second column of tuple | this grabs first row                    
                 # print(f"link_id: {link_id}")  # TODO: delete this line
                 self.linked_box.requery(link_id)
-                # self.linked_box.link_value = link_id  # if you want to store the link_value after on_select (jon version)
+                # self.linked_box.link_value = link_id  # if you want to store the link_value within on_select method (jon version)
  
     
 if __name__ == "__main__":
