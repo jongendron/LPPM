@@ -4,9 +4,6 @@ try:
 except ImportError: # python 2
     import Tkinter as tkinter
 
-
-conn = sqlite3.connect("music.db") # database connection
-
 # When using multiple list boxs and <<ListboxSelect>> as a bound widget
 # you must use exportselection=False
 # Reference: https://stackoverflow.com/questions/60336671/tkinter-binding-listboxselect-to-function-with-multiple-listboxes-in-frame
@@ -26,106 +23,128 @@ class Scrollbox(tkinter.Listbox):
         self.scrollbar.grid(row=row, column=column, sticky='nse', rowspan=rowspan)
         self['yscrollcommand'] = self.scrollbar.set # tells artistList to call artistScroll.set method whenever anything happens (clicking arrows for example)
 
-def get_albums(event): # bound function call is passed event
-    lb = event.widget # retrieve reference to widget that triggers the effect
-    print("lb: ", lb, "") # print label box
-    index = lb.curselection()[0] # listbox has curselection() that returns tuple of all selected items in the list [0] only lets first value being selected
-    # retrieve artist name from listbox curselection
-    artist_name = lb.get(index), # The trailing ',' makes the results into a tuple (<value>, ) also works, this is 
-    # so it can be input directly into the SQL query substitution
 
-    # get the artist ID from the database row
-    artist_id = conn.execute("SELECT artists._id FROM artists WHERE artists.name=?", artist_name).fetchone() # retrieve artist ID by querying name -> returns tuple
-    alist = []
-    for row in conn.execute("SELECT albums.name FROM albums WHERE albums.artist = ? ORDER BY albums.name", artist_id):
-        alist.append(row[0])
-    albumLV.set(tuple(alist))
-    songLV.set(("Choose an album",))
-
-
-def get_songs(event):
-    lb = event.widget
-    print("lb: ", lb) # print label box
-    index = int(lb.curselection()[0])
-    album_name = lb.get(index),
-
-    # get the artist ID from database row
-    album_id = conn.execute("SELECT albums._id FROM albums WHERE albums.name=?", album_name).fetchone()
-    alist = []
-    for row in conn.execute("SELECT songs.title FROM songs WHERE songs.album=? ORDER BY songs.track", album_id):
-        alist.append(row[0])
+class DataListBox(Scrollbox):
     
-    songLV.set(tuple(alist))
+    def __init__(self, window, connection, table, field, sort_order=(), **kwargs):
+        # Scollbox.__init__(self, window, **kwargs)  # Python 2
+        super().__init__(window, **kwargs)
 
+        self.linked_box = None  # linked widget (listbox in our case)
+        self.link_field = None  # field to link widgets by
 
+        self.cursor = connection.cursor() # work with cursors rather than connection directly
+        self.table = table
+        self.field = field
 
-mainWindow = tkinter.Tk()
-mainWindow.title("Music DB Browser")
-mainWindow.geometry('1024x768') # pixels
+        self.bind('<<ListboxSelect>>', self.on_select)  # bind <<ListboxSelect>> event to self.on_select method
 
-# Configure mainWindow columns
-mainWindow.columnconfigure(0, weight=2)
-mainWindow.columnconfigure(1, weight=2)
-mainWindow.columnconfigure(2, weight=2)
-mainWindow.columnconfigure(3, weight=1) # spacer column on right
+        self.sql_select = "SELECT " + self.field + ", _id" + " FROM " + self.table
+        if sort_order:
+            self.sql_sort = " ORDER BY " + ','.join(sort_order) # separated sort fields by comma
+        else:
+            self.sql_sort = " ORDER BY " + self.field
 
-# Configure mainWindow rows
-mainWindow.rowconfigure(0, weight=1) # title
-mainWindow.rowconfigure(1, weight=5) # listbox
-mainWindow.rowconfigure(2, weight=5) # listbox
-mainWindow.rowconfigure(3, weight=1) # spacer
+    def clear(self): # clear data out of list box
+        self.delete(0, tkinter.END)
 
-# labels
-tkinter.Label(mainWindow, text="Artists").grid(row=0, column=0)
-tkinter.Label(mainWindow, text="Albums").grid(row=0, column=1)
-tkinter.Label(mainWindow, text="Songs").grid(row=0, column=2)
+    def link(self, widget, link_field):  # links target listbox to this master listbox
+        self.linked_box = widget  # reference to target listbox
+        widget.link_field = link_field  # field to link widgets together by
 
-# Artists Listbox
-#artistList = tkinter.Listbox(mainWindow)
-#artistList = Scrollbox(mainWindow, background='white')
-artistList = Scrollbox(mainWindow, background='white', exportselection=False)
-artistList.grid(row=1, column=0, sticky='nsew', rowspan=2, padx=(30,0))
-artistList.config(border=2, relief='sunken')
+    def requery(self, link_value=None):
+        if link_value and self.link_field:  # ensures there is infact a linked field between two listboxes
+            sql = self.sql_select + " WHERE " + self.link_field + "=?" + self.sql_sort
+            # print(sql)  # TODO: delte this line
+            self.cursor.execute(sql, (link_value,))
+        else:
+            # print(self.sql_select + self.sql_sort)  # TODO: delete this line after testing
+            self.cursor.execute(self.sql_select + self.sql_sort)
 
-# artistScroll = tkinter.Scrollbar(mainWindow, orient=tkinter.VERTICAL, command=artistList.yview) # command=artistList.yview method scrolls vertically (same for .xview)
-# artistScroll.grid(row=1, column=0, sticky='nse', rowspan=2)
-# artistList['yscrollcommand'] = artistScroll.set # tells artistList to call artistScroll.set method whenever anything happens (clicking arrows for example)
+        # Clear listbox contents -> then repopulate
+        self.clear()
+        for value in self.cursor:
+            self.insert(tkinter.END, value[0]) # first item in tuple should be target value
 
-# Populate artist Listbox with data from database
-for artist in conn.execute("SELECT artists.name FROM artists ORDER BY artists.name"):
-    artistList.insert(tkinter.END, artist[0]) # pull artist from tuple
+        if self.linked_box: # deletes contents of linked listbox # Note the linked listbox must have clear method!
+            self.linked_box.clear()
+            self.linked_box.insert(tkinter.END, "Select an Album")
 
-# We want virtual event, <<ListboxSelect>> to find method to it
-artistList.bind('<<ListboxSelect>>', get_albums)  # when item is selected from artistList -> use .getalbums() method
+    #def on_select(self, event):
+    def on_select(self, event):
+        """method to select item from gui, then use its value to requery the linked database."""
+        
+        if self.linked_box:
+            # print(self is event.widget)  # TODO: self should be the same as event.widget (event.widget points to it).
+            if self.curselection(): # test that curselection() isn't empty
+                index = self.curselection()[0] # listbox has curselection() that returns tuple of all selected items in the list [0] only lets first value being selected    
+                value = self.get(index), # retrieve artist name from listbox curselection
 
-# Albums Variable and Listbox
-albumLV = tkinter.Variable(mainWindow)
-albumLV.set(("Choose an artist",)) # to keep all words of string on same line use a tuple
-#albumList = tkinter.Listbox(mainWindow, listvariable=albumLV) # link albumList Listbox to albumLV Variable
-#albumList = Scrollbox(mainWindow, listvariable=albumLV)
-albumList = Scrollbox(mainWindow, listvariable=albumLV, exportselection=False)
-albumList.grid(row=1, column=1, sticky='nsew', padx=(30,0))
-albumList.config(border=2, relief='sunken')
+                # get the link_id (_id) from the specified datbase table
+                link_id = self.cursor.execute(self.sql_select + " WHERE " + self.field + "=?", value).fetchone()[1] # _id should be second column of tuple | this grabs first row
+                print(f"link_id: {link_id}")  # TODO: delete this line
+                self.linked_box.requery(link_id)
 
-albumList.bind('<<ListboxSelect>>', get_songs) # find function to action
+                # link_id2 = self.cursor.execute(self.sql_select + " WHERE " + self.field + "=?", value)
+                # for row in link_id2:
+                #     print(row)
+    
+if __name__ == "__main__":
+    conn = sqlite3.connect("music.db") # database connection
 
-# albumScroll = tkinter.Scrollbar(mainWindow, orient=tkinter.VERTICAL, command=albumList.yview) # command=albumList.yview method scrolls vertically (same for .xview)
-# albumScroll.grid(row=1, column=1, sticky='nse')
-# albumList['yscrollcommand'] = albumScroll.set # tells albumList to call albumScroll.set method whenever anything happens (clicking arrows for example)
+    mainWindow = tkinter.Tk()
+    mainWindow.title("Music DB Browser")
+    mainWindow.geometry('1024x768') # pixels
 
-# Songs Variable and Listbox
-songLV = tkinter.Variable(mainWindow)
-songLV.set(("Choose a song",))
-#songList = tkinter.Listbox(mainWindow, listvariable=songLV) # link songList Listbox to albumLV Variable
-#songList = Scrollbox(mainWindow, listvariable=songLV)
-songList = Scrollbox(mainWindow, listvariable=songLV, exportselection=False)
-songList.grid(row=1, column=2, sticky='nsew', padx=(30,0))
-songList.config(border=2, relief='sunken')
+    # Configure mainWindow columns
+    mainWindow.columnconfigure(0, weight=2)
+    mainWindow.columnconfigure(1, weight=2)
+    mainWindow.columnconfigure(2, weight=2)
+    mainWindow.columnconfigure(3, weight=1) # spacer column on right
 
-# Main Loop
-testlist = range(0,100)
-albumLV.set(tuple(testlist)) # variable and listbox are synced/bound so if variable changes listbox updates (also works when GUI is running)
-mainWindow.mainloop()
-print("closing database connection")
-conn.close()
+    # Configure mainWindow rows
+    mainWindow.rowconfigure(0, weight=1) # title
+    mainWindow.rowconfigure(1, weight=5) # listbox
+    mainWindow.rowconfigure(2, weight=5) # listbox
+    mainWindow.rowconfigure(3, weight=1) # spacer
+
+    # Labels
+    tkinter.Label(mainWindow, text="Artists").grid(row=0, column=0)
+    tkinter.Label(mainWindow, text="Albums").grid(row=0, column=1)
+    tkinter.Label(mainWindow, text="Songs").grid(row=0, column=2)
+
+    # ===== Artists Listbox =====
+    artistList = DataListBox(mainWindow, connection=conn, table="artists", field="name")
+    artistList.grid(row=1, column=0, sticky='nsew', rowspan=2, padx=(30,0))
+    artistList.config(border=2, relief='sunken')
+    artistList.requery()
+
+    # ===== Albums Listbox & Variable =====
+    # albumLV = tkinter.Variable(mainWindow)
+    # albumLV.set(("Choose an artist",)) # to keep all words of string on same line use a tuple
+
+    albumList = DataListBox(mainWindow, connection=conn, table="albums", field="name", sort_order=("name",))
+    #albumList = DataListBox(mainWindow, connection=conn, table="albums", field="name", sort_order=("name",), listvariable=albumLV)
+    albumList.grid(row=1, column=1, sticky='nsew', padx=(30,0))
+    albumList.config(border=2, relief='sunken')
+    # albumList.requery(12)
+
+    artistList.link(albumList, "artist")
+
+    # ===== Songs Variable and Listbox =====
+    # songLV = tkinter.Variable(mainWindow)
+    # songLV.set(("Choose a song",))
+
+    songList = DataListBox(mainWindow, connection=conn, table="songs", field="title", sort_order=("track", "title"))
+    # songList = DataListBox(mainWindow, connection=conn, table="songs", field="title", sort_order=("track", "title"), listvariable=songLV)
+    songList.grid(row=1, column=2, sticky='nsew', padx=(30,0))
+    songList.config(border=2, relief='sunken')
+    # songList.requery()
+
+    albumList.link(songList, "album")
+
+    # ===== Main Loop =====
+    mainWindow.mainloop()
+    print("closing database connection")
+    conn.close()
 

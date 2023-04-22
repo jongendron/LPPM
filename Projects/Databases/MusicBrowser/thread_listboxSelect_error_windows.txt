@@ -1,0 +1,137 @@
+Link: https://www.udemy.com/course/python-the-complete-python-developer-course/learn/lecture/6795222#questions/2279950/
+
+########################################################################################################################
+
+Jean-Paul — Instructor
+6 upvotes
+4 years ago
+Hi,
+
+The problem (and fix) is well documented in this thread.
+
+In your get_albums and get_songs functions, put all the code inside a test that lb.curselection() isn't empty:
+
+def get_songs(event):
+    lb = event.widget
+    if lb.curselection():                             # <-- add this test
+        index = int(lb.curselection()[0])
+        album_name = lb.get(index),
+        album_id = conn.execute("SELECT albums._id From albums WHERE albums.name=?", album_name).fetchone()
+        alist = []
+        for x in conn.execute("SELECT songs.title FROM songs WHERE songs.album=? ORDER BY songs.track", album_id):
+            alist.append(x[0])
+        songlv.set(tuple(alist))
+
+########################################################################################################################
+
+Mike
+0 upvotes
+5 years ago
+I've seen the same issue (also on windows - win7 x64 for me) I finally put the offending code in try/except block to simply return from the get_albums/get_songs/on_select code to avoid the distraction.
+
+It seems to occur on the first album selection of an artist.
+
+Here's what's printed by TIm's code (pre-on_select()) when starting up, selecting the first artist in the list, and then selecting the album that comes up:
+
+C:\Users\mburgett\AppData\Local\Programs\Python\Python36-32\python.exe C:/Users/mburgett/python/MusicBrowser/jukebox2.py
+get_albums: (0,)
+get_songs: (0,)
+get_albums: ()
+Exception in Tkinter callback
+Traceback (most recent call last):
+  File "C:\Users\mburgett\AppData\Local\Programs\Python\Python36-32\lib\tkinter\__init__.py", line 1699, in __call__
+    return self.func(*args)
+  File "C:/Users/mburgett/python/MusicBrowser/jukebox2.py", line 29, in get_albums
+    index = lb.curselection()[0]
+IndexError: tuple index out of range
+
+This is with the following code:
+
+
+
+def get_albums(event):
+    lb = event.widget
+    print("get_albums:", lb.curselection())
+    index = lb.curselection()[0]
+    artist_name = lb.get(index),
+ 
+    # get the artist ID from the database row
+    artist_id = conn.execute("SELECT artists._id FROM artists WHERE artists.name=?", artist_name).fetchone()
+    alist = []
+    for row in conn.execute("SELECT albums.name FROM albums WHERE albums.artist = ? ORDER BY albums.name", artist_id):
+        alist.append(row[0])
+    albumLV.set(tuple(alist))
+    songLV.set(("Choose an album",))
+ 
+ 
+def get_songs(event):
+    lb = event.widget
+    print("get_songs:", lb.curselection())
+    index = int(lb.curselection()[0])
+    album_name = lb.get(index),
+ 
+    # get the artist ID from the database row
+    album_id = conn.execute("SELECT albums._id FROM albums WHERE albums.name=?", album_name).fetchone()
+    alist = []
+    for x in conn.execute("SELECT songs.title FROM songs WHERE songs.album=? ORDER BY songs.track", album_id):
+        alist.append(x[0])
+    songLV.set(tuple(alist))
+
+
+It's Tim's, except for the print of lb.curselection() in both routines.
+
+
+
+
+Jean-Paul — Instructor
+0 upvotes
+5 years ago
+Hi,
+
+Thanks for posting those details. I must admit that I've let my investigation of this slip. It seems to be connected to Python 3.6 on Windows, so I'll install 3.6 on a Windows machine and test further. It worked fine with 3.6 on Mac and Linux.
+
+I'm very pushed for time at the moment, so please give me a nudge if you haven't heard back from me in a few days.
+
+Wrapping it in a try block is a good idea, although it doesn't seem to crash the program.
+
+MB
+Mike
+1 upvote
+5 years ago
+*nudge*
+
+
+Jean-Paul — Instructor
+10 upvotes
+5 years ago
+Hi,
+
+Sorry for the delay, I just couldn't find a convenient time to boot into Windows.
+
+I've got exactly the same behaviour as you, using Python 3.6 on Windows. The 32 bit and 64 bit versions both have the problem. Python 3.5 works fine, as does 2.7.
+
+2.7 and 3.6 on Mac and Linux work fine.
+
+We test all code on Linux (2.7 if appropriate, and 3.4), Mac (3.6) and Windows (3.5), which should give good coverage, but obviously that's not sufficient.
+
+Now technically, the on_select function shouldn't get called if nothing's selected. It appears that it's also being called (on Windows) when a row loses the selection too.
+
+However, even without this problem, the code is slightly sloppy. We shouldn't have assumed we'd get a valid tuple in curselection and should have checked it at the start of on_select. That's what Dmitrii did, and that's how we should really have written the code. on_select then starts off as
+
+def on_select(self, event):
+    if self.linked_box and self.curselection():
+
+
+I'm not sure if this is a bug in the Windows implementation of those Python versions, or a bug in the versions that don't have this behaviour. It depends how you read this paragraph in the TCL documentation:
+
+Any time the set of selected item(s) in the listbox is updated by the user through the keyboard or mouse, the virtual event <<ListboxSelect>> will be generated. This virtual event will not be generated when adjusting the selection with the pathNameselection command. It is easiest to bind to this event to be made aware of any user changes to listbox selection. 
+
+Strictly speaking, by selecting an item in another listbox, the user has un-selected the item in the first one - which counts as "the set of selected item(s) in the listbox is updated". I didn't read it as applying to un-selection, but should have considered it.
+
+So, once again I've learnt 2 lessons that I should already know :-)
+
+1. You can never test enough.
+
+2. Never assume anything, always cater for something not being as you "assume" it should be.
+
+Thanks for the nudge :-)
