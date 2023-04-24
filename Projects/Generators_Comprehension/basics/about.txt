@@ -1,0 +1,3 @@
+- Generators save memory usage.
+- Generators work like iterators.
+- we can use next instead of a for loop.
