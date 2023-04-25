@@ -1,3 +1,5 @@
 - Generators save memory usage.
 - Generators work like iterators.
 - we can use next instead of a for loop.
+- If you loop through a generator, it returns values on demand rather than all at once
+- There are finite and infinite generators
