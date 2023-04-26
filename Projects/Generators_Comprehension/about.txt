@@ -1,0 +1,15 @@
+Generators:
+- Generators save memory usage.
+- Generators work like iterators.
+- we can use next instead of a for loop.
+- If you loop through a generator, it returns values on demand rather than all at once.
+- There are finite and infinite generators.
+
+Comprehensions:
+- exist for lists, sets, dicts, and generator expressions.
+- favorable over for-loops when ...
+- you don't want loop control variables to modify global variables w/ same name
+- ... this is because for loops have a global scope, rather than an inner scope like
+- ... in a function. Conversely, list comprehension creates a sub-level scope for operation.
+- set comprehension avoids duplicates that would be in a list.
+- can contain conditions (if / else statements).
