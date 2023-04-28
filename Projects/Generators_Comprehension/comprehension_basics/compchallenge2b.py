@@ -1,3 +1,7 @@
+import timeit
+
+setup = """\
+gc.enable()  # to enable garbage collection in testing
 # Built-in Functions: https://docs.python.org/3/library/functions.html
 locations = {0: "You are sitting in front of a computer learning Python",
              1: "You are standing at the end of a road before a small brick building",
@@ -12,9 +16,11 @@ exits = {0: {"Q": 0},
          3: {"W": 1, "Q": 0},
          4: {"N": 1, "W": 2, "Q": 0},
          5: {"W": 2, "S": 1, "Q": 0}}
+"""
 
 print("nested for loops")
 print("----------------")
+nested_loop = """\
 for loc in sorted(locations):
     exits_to_destination_1 = []
     for xit in exits:
@@ -22,21 +28,38 @@ for loc in sorted(locations):
             exits_to_destination_1.append((xit, locations[xit]))
     print("Locations leading to {}".format(loc), end='\t')
     print(exits_to_destination_1)
+"""
 print()
 
 print("List comprehension inside a for loop")
 print("------------------------------------")
+loop_comp = """\
 for loc in sorted(locations):
     exits_to_destination_2 = [(xit, locations[xit]) for xit in exits if loc in exits[xit].values()]
     print("Locations leading to {}".format(loc), end='\t')
     print(exits_to_destination_2)
+"""
 print()
 
 print("Nested list comprehension")
 print("--------------------------")
+nested_comp = """\
 exits_to_destination_3 = [[(xit, locations[xit]) for xit in exits if loc in exits[xit].values()] for loc in sorted(locations)]
 # exits_to_destination_3 = [(loc, [(xit, locations[xit]) for xit in exits if loc in exits[xit].values()]) for loc in sorted(locations)]
-print()
 for index, loc in enumerate(exits_to_destination_3):  # using index number position to specify location w/ enumerate
     print("Locations leading to {}".format(index), end='\t')
     print(loc)
+"""
+
+# timeit.timeit() -> returns process run time (to <times> iterations)
+# globals = globals() defines global namespace
+# setup = <string of code> defines code that stmt depends on
+# result1 = timeit.timeit(nested_loop, globals = globals(), number = 1000)
+# Typically avoid printing to screen when testing time because it can significantly influence performance 
+# (and can be unstable influence)
+result1 = timeit.timeit(nested_loop, setup = setup, number = 1000)
+result2 = timeit.timeit(loop_comp, setup = setup, number = 1000)
+result3 = timeit.timeit(nested_comp, setup = setup, number = 1000)
+print("Nested loop:\t{}".format(result1))
+print("Loop comp:\t{}".format(result2))
+print("Nested comp:\t{}".format(result3))
