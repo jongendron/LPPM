@@ -110,7 +110,7 @@ def nested_gen():
 print(nested_loop())
 print(loop_comp())
 print(nested_comp())
-print(nested_gen)
+print(nested_gen())
 
 # timeit.timeit() -> returns process run time (to <times> iterations)
 # globals = globals() defines global namespace
