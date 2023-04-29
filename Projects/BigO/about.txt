@@ -1,0 +1,16 @@
+Big O Notation
+
+- measrues the complexity of an algorithm as its input grows.
+- can refer to execution time or space/memory requirements
+- doesn't tell you how long it will take to complete, but rather how time increases with input.
+- focuses on worst case scenario (upper limit) processing time for each algorithm.
+- two functions that have linear big o `O(n)` do not take the same time to execute, rather it says 
+if you increase input by x100 the worst case processing time increases by a x100.
+
+Big O is only concerned with the term that increases the most:
+- O(n-1)^2 -> O(n^2 - 2n + 1) -> O(n^2) because we only care about the n^2 term.
+- As n goes to infinity, the n^2 term dominates the output
+
+Sorting examples:
+- https://en.wikipedia.org/wiki/Sorting_algorithm#Comparison_sorts
+- https://www.toptal.com/developers/sorting-algorithms/nearly-sorted-initial-order
